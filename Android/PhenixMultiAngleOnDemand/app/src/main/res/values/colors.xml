@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  -->
+
+<resources>
+    <color name="primaryColor">#212121</color>
+    <color name="primaryDarkColor">#000000</color>
+
+    <color name="accentColor">#ff1744</color>
+    <color name="accentDarkColor">#c4001d</color>
+
+    <color name="primaryTextColor">#ffffff</color>
+    <color name="primaryTextDarkColor">#333</color>
+
+    <color name="primaryTranslucentColor">#80000000</color>
+
+    <color name="colorRePlay">#FF669900</color>
+    <color name="colorRePlayAccent">#558000</color>
+    <color name="colorRePlayDisabled">#858585</color>
+    <color name="colorRePlayDisabledAccent">#6E6E6E</color>
+</resources>

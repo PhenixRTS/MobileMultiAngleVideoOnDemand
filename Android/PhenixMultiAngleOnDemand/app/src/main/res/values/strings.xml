@@ -1,0 +1,15 @@
+<!--
+  ~ Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  -->
+
+<resources>
+    <string name="app_name">Phenix MultiAngleOnDemand</string>
+    <string name="err_network_problems">Experiencing problems connecting to Phenix. Check your network status.</string>
+    <string name="err_invalid_deep_link">Invalid deep link, application will close.</string>
+    <string name="err_unrecoverable_error">Encountered an unexpected error, please start the application again.</string>
+    <string name="err_configuration_changed">Configuration has changed. Please start the app again to apply the changes.</string>
+    <string name="popup_ok">OK</string>
+    <string name="button_play_act">Play Act</string>
+    <string name="stream_offline">OFFLINE</string>
+    <string name="stream_ended">STREAM ENDED</string>
+</resources>

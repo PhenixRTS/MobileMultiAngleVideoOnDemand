@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  -->
+
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true"
+    tools:context=".ui.MainActivity">
+
+    <FrameLayout
+        android:id="@+id/main_stream_holder"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/primaryDarkColor"
+        android:foreground="@drawable/bg_surface"
+        android:visibility="invisible"
+        tools:visibility="visible"
+        android:animateLayoutChanges="true"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/main_stream_list">
+
+        <SurfaceView
+            android:id="@+id/main_stream_surface"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+
+        <ProgressBar
+            android:id="@+id/main_stream_loading"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:padding="160dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
+
+        <TextView
+            android:id="@+id/stream_ended_overlay"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:gravity="center"
+            android:textColor="@color/primaryTextColor"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="16sp"
+            android:background="@color/primaryTranslucentColor"
+            android:text="@string/stream_ended"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <TextView
+            android:id="@+id/stream_timestamp_overlay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="8dp"
+            android:layout_margin="16dp"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="14sp"
+            android:layout_gravity="end"
+            android:textColor="@color/primaryTextColor"
+            android:background="@color/primaryTranslucentColor"
+            tools:text="10:00:11"/>
+
+    </FrameLayout>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/main_stream_list"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:background="@color/primaryDarkColor"
+        android:visibility="invisible"
+        tools:itemCount="4"
+        tools:listitem="@layout/row_stream_item"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/main_stream_holder"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/play_act_holder"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:orientation="horizontal"
+        android:baselineAligned="false"
+        android:animateLayoutChanges="true"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <LinearLayout
+            android:id="@+id/spinner_highlights_holder"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="8dp"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_spinner"
+            android:orientation="horizontal">
+
+            <Spinner
+                android:id="@+id/spinner_acts"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:theme="@style/SpinnerTheme" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/play_act_button"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="4dp"
+            android:gravity="center"
+            android:orientation="horizontal"
+            android:background="@drawable/bg_play_act_button"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent">
+
+            <ImageView
+                android:id="@+id/play_act_button_icon"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:src="@drawable/ic_play"
+                android:contentDescription="@null" />
+
+            <TextView
+                android:id="@+id/play_act_button_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/button_play_act"
+                android:layout_marginStart="8dp"
+                android:textAllCaps="true"
+                android:textColor="@color/primaryTextColor"
+                android:fontFamily="sans-serif-medium"
+                android:textSize="18sp"
+                android:gravity="center"/>
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
