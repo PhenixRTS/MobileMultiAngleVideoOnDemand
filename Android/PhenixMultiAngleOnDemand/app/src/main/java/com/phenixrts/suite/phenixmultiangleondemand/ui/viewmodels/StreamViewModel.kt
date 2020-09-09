@@ -7,7 +7,6 @@ package com.phenixrts.suite.phenixmultiangleondemand.ui.viewmodels
 import android.view.SurfaceView
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
-import com.phenixrts.suite.phenixmultiangleondemand.common.SingleLiveEvent
 import com.phenixrts.suite.phenixmultiangleondemand.models.Act
 import com.phenixrts.suite.phenixmultiangleondemand.common.launchMain
 import com.phenixrts.suite.phenixmultiangleondemand.models.Stream
@@ -38,7 +37,7 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
     val onTimeShiftReady = MutableLiveData<Boolean>().apply { value = false }
     val onTimeShiftEnded = MutableLiveData<Boolean>().apply { value = false }
     val onReplayButtonClickable = MutableLiveData<Boolean>().apply { value = true }
-    val onStreamsReady = SingleLiveEvent<Unit>()
+    val onStreamsReady = MutableLiveData<Unit>()
 
     init {
         Timber.d("Observing streams")
@@ -51,7 +50,7 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
                     stream.onTimeShiftReady.observeForever(timeShiftReadyObserver)
                     stream.onTimeShiftEnded.observeForever(timeShiftEndedObserver)
                 }
-                onStreamsReady.call()
+                onStreamsReady.value = Unit
                 Timber.d("Streams started $streamList")
             }
         }
@@ -70,14 +69,6 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
 
     private fun updateReadyState() = launchMain {
         val isReady = streams.value?.none { it.onTimeShiftReady.value == false } ?: false
-        // Start playing when all streams are ready
-        if (isReady) {
-            streams.value?.forEach {  stream ->
-                stream.onLoading.value = false
-                stream.playTimeShift()
-            }
-            Timber.d("Time shift ready - playing")
-        }
         onTimeShiftReady.value = isReady
     }
 
@@ -104,7 +95,7 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
         selectedAct = acts.value?.getOrNull(index) ?: acts.value?.first()
     }
 
-    fun playAct(index: Int) {
+    fun seekToAct(index: Int) {
         selectedAct = acts.value?.getOrNull(index) ?: acts.value?.first()
         selectedAct?.let { act ->
             onReplayButtonClickable.value = false
@@ -116,5 +107,13 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
                 onReplayButtonClickable.value = true
             }
         }
+    }
+
+    fun playTimeShift() {
+        streams.value?.forEach {  stream ->
+            stream.onLoading.value = false
+            stream.playTimeShift()
+        }
+        Timber.d("Time shift ready - playing")
     }
 }

@@ -5,7 +5,6 @@
 package com.phenixrts.suite.phenixmultiangleondemand.models
 
 import android.graphics.Bitmap
-import android.graphics.Paint
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.lifecycle.MutableLiveData
@@ -42,6 +41,7 @@ data class Stream(
     private var timeShift: TimeShift? = null
 
     private var bandwidthLimiter: Disposable? = null
+    private var timeShiftLimiter: Disposable? = null
     private var timeShiftDisposables = mutableListOf<Disposable>()
     private var timeShiftSeekDisposables = mutableListOf<Disposable>()
     private var isBitmapSurfaceAvailable = false
@@ -66,17 +66,14 @@ data class Stream(
     val onPlaybackHead = MutableLiveData<Long>().apply { value = 0 }
     val status = MutableLiveData<StreamStatus>()
 
-    private fun limitBandwidth() {
-        Timber.d("Limiting Bandwidth: ${toString()}")
-        bandwidthLimiter = expressSubscriber?.videoTracks?.getOrNull(0)?.limitBandwidth(BANDWIDTH_LIMIT)
-    }
-
     private fun createTimeShift() {
         onTimeShiftReady.value = false
         Timber.d("Subscribing to time shift observables")
+        releaseTimeShiftObservers()
         renderer?.seek(0, SeekOrigin.BEGINNING)?.let { shift ->
             timeShift = shift
             timeShiftStartTime = shift.startTime.time
+            limitTimeShiftBandwidth()
             shift.observableReadyForPlaybackStatus?.subscribe { isReady ->
                 launchMain {
                     if (onTimeShiftReady.value != isReady) {
@@ -107,17 +104,16 @@ data class Stream(
                     }
                 }
             }?.run { timeShiftDisposables.add(this) }
-            shift.limitBandwidth(BANDWIDTH_LIMIT)?.run {
-                timeShiftDisposables.add(this)
-            }
         }
     }
 
     private fun updateSurfaces() {
         if (isMainRendered.value == false) {
             limitBandwidth()
+            limitTimeShiftBandwidth()
         } else {
             releaseBandwidthLimiter()
+            releaseTimeShiftLimiter()
         }
         thumbnailSurface?.setVisible(isMainRendered.value == false)
         bitmapSurface?.setVisible(isMainRendered.value == true)
@@ -138,20 +134,7 @@ data class Stream(
                     holder.lockCanvas()?.let { canvas ->
                         val targetWidth = bitmapSurface?.measuredWidth ?: 0
                         val targetHeight = bitmapSurface?.measuredHeight ?: 0
-                        val ratioBitmap = bitmap.width.toFloat() / bitmap.height.toFloat()
-                        val ratioTarget = targetWidth.toFloat() / targetHeight.toFloat()
-
-                        var finalWidth = targetWidth
-                        var finalHeight = targetHeight
-                        if (ratioTarget > 1) {
-                            finalWidth = (targetHeight.toFloat() * ratioBitmap).toInt()
-                        } else {
-                            finalHeight = (targetWidth.toFloat() / ratioBitmap).toInt()
-                        }
-                        val scaledBitmap = Bitmap.createScaledBitmap(bitmap, finalWidth, finalHeight, true)
-                        canvas.drawBitmap(scaledBitmap, 0f, 0f, Paint())
-                        scaledBitmap.recycle()
-                        bitmap.recycle()
+                        canvas.drawScaledBitmap(bitmap, targetWidth, targetHeight)
                         holder.unlockCanvasAndPost(canvas)
                     }
                 }
@@ -159,6 +142,22 @@ data class Stream(
         } catch (e: Exception) {
             Timber.d(e, "Failed to draw bitmap")
         }
+    }
+
+    private fun limitTimeShiftBandwidth() {
+        Timber.d("Limiting TimeShift Bandwidth: ${toString()}")
+        timeShiftLimiter = timeShift?.limitBandwidth(BANDWIDTH_LIMIT)
+    }
+
+    private fun releaseTimeShiftLimiter() {
+        Timber.d("Releasing TimeShift limiter: ${toString()}")
+        timeShiftLimiter?.dispose()
+        timeShiftLimiter = null
+    }
+
+    private fun limitBandwidth() {
+        Timber.d("Limiting Bandwidth: ${toString()}")
+        bandwidthLimiter = expressSubscriber?.videoTracks?.getOrNull(0)?.limitBandwidth(BANDWIDTH_LIMIT)
     }
 
     private fun releaseBandwidthLimiter() {
@@ -254,6 +253,7 @@ data class Stream(
     }
 
     fun seekToAct(act: Act) = launchMain {
+        limitTimeShiftBandwidth()
         timeShiftSeekDisposables.forEach { it.dispose() }
         timeShiftSeekDisposables.clear()
         onTimeShiftEnded.value = false
@@ -274,7 +274,11 @@ data class Stream(
     }
 
     fun playTimeShift() {
+        Timber.d("Playing time shift")
         timeShift?.play()
+        if (isMainRendered.value == true) {
+            releaseTimeShiftLimiter()
+        }
     }
 
     override fun toString(): String {

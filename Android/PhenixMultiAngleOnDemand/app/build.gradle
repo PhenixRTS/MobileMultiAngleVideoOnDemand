@@ -58,7 +58,6 @@ android {
 }
 
 dependencies {
-    implementation fileTree(dir: "libs", include: ["*.aar"])
     // Kotlin
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$kotlinx_coroutines_version"

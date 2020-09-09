@@ -68,7 +68,7 @@ class MainActivity : FragmentActivity() {
 
         play_act_button.setOnClickListener {
             Timber.d("Play act button clicked")
-            viewModel.playAct(spinner_acts.selectedItemPosition)
+            viewModel.seekToAct(spinner_acts.selectedItemPosition)
         }
 
         viewModel.acts.observe(this, { acts ->
@@ -104,9 +104,10 @@ class MainActivity : FragmentActivity() {
             stream_ended_overlay.setVisible(hasEnded)
         })
         viewModel.onTimeShiftReady.observe(this, { ready ->
-            Timber.d("Time shift ready")
-            main_stream_loading.setVisible(viewModel.streams.value?.find { it.isMainRendered.value == true }?.onLoading?.value == true)
+            Timber.d("Time shift ready: $ready")
+            main_stream_loading.setVisible(!ready)
             play_act_holder.setVisible(ready)
+            if(ready) viewModel.playTimeShift()
         })
         viewModel.onReplayButtonClickable.observe(this, { isClickable ->
             play_act_button.setBackgroundResource(
