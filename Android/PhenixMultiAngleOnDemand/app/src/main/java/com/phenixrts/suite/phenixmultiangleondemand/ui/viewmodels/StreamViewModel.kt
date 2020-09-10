@@ -26,6 +26,10 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
         updateEndedState()
     }
 
+    private val streamSubscribedObserver = Observer<Boolean> {
+        updateSubscribedState()
+    }
+
     private val playbackHeadObserver = Observer<Long> { head ->
         headTimeStamp.value = head
     }
@@ -36,8 +40,8 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
     val headTimeStamp = MutableLiveData<Long>()
     val onTimeShiftReady = MutableLiveData<Boolean>().apply { value = false }
     val onTimeShiftEnded = MutableLiveData<Boolean>().apply { value = false }
+    val onStreamsSubscribed = MutableLiveData<Boolean>().apply { value = true }
     val onReplayButtonClickable = MutableLiveData<Boolean>().apply { value = true }
-    val onStreamsReady = MutableLiveData<Unit>()
 
     init {
         Timber.d("Observing streams")
@@ -46,11 +50,11 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
                 Timber.d("Stream list changed $streamList")
                 streams.value = streamList
                 streamList?.forEach { stream ->
-                    stream.subscribeToStream()
+                    stream.onStreamSubscribed.observeForever(streamSubscribedObserver)
                     stream.onTimeShiftReady.observeForever(timeShiftReadyObserver)
                     stream.onTimeShiftEnded.observeForever(timeShiftEndedObserver)
+                    stream.subscribeToStream()
                 }
-                onStreamsReady.value = Unit
                 Timber.d("Streams started $streamList")
             }
         }
@@ -70,6 +74,11 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
     private fun updateReadyState() = launchMain {
         val isReady = streams.value?.none { it.onTimeShiftReady.value == false } ?: false
         onTimeShiftReady.value = isReady
+    }
+
+    private fun updateSubscribedState() = launchMain {
+        val isSubscribed = streams.value?.none { it.onStreamSubscribed.value == false } ?: false
+        onStreamsSubscribed.value = isSubscribed
     }
 
     fun updateActiveStream(surfaceView: SurfaceView, stream: Stream) = launchMain {

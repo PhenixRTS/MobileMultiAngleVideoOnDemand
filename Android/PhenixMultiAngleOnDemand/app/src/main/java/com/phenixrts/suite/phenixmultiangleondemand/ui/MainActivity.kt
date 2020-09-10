@@ -90,10 +90,12 @@ class MainActivity : FragmentActivity() {
             Timber.d("Stream list updated: $streams")
             streamAdapter.data = streams
         })
-        viewModel.onStreamsReady.observe(this, {
-            Timber.d("On all streams ready")
-            viewModel.streams.value?.find { it.isMainRendered.value == true }?.let { stream ->
-                viewModel.updateActiveStream(main_stream_surface, stream)
+        viewModel.onStreamsSubscribed.observe(this, { isSubscribed ->
+            Timber.d("On all streams ready: $isSubscribed")
+            if (isSubscribed) {
+                viewModel.streams.value?.find { it.isMainRendered.value == true }?.let { stream ->
+                    viewModel.updateActiveStream(main_stream_surface, stream)
+                }
             }
         })
         viewModel.headTimeStamp.observe(this, { head ->

@@ -22,9 +22,7 @@ import com.phenixrts.pcast.android.AndroidVideoRenderSurface
 import com.phenixrts.suite.phenixmultiangleondemand.common.*
 import com.phenixrts.suite.phenixmultiangleondemand.common.enums.StreamStatus
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.suspendCancellableCoroutine
 import timber.log.Timber
-import kotlin.coroutines.resume
 
 private const val BANDWIDTH_LIMIT = 1000 * 520L
 
@@ -40,7 +38,6 @@ data class Stream(
     private var expressSubscriber: ExpressSubscriber? = null
     private var timeShift: TimeShift? = null
 
-    private var bandwidthLimiter: Disposable? = null
     private var timeShiftLimiter: Disposable? = null
     private var timeShiftDisposables = mutableListOf<Disposable>()
     private var timeShiftSeekDisposables = mutableListOf<Disposable>()
@@ -61,19 +58,18 @@ data class Stream(
 
     val onTimeShiftReady = MutableLiveData<Boolean>().apply { value = false }
     val onTimeShiftEnded = MutableLiveData<Boolean>().apply { value = false }
+    val onStreamSubscribed = MutableLiveData<Boolean>().apply { value = false }
     val isMainRendered= MutableLiveData<Boolean>().apply { value = false }
     var onLoading = MutableLiveData<Boolean>().apply { value = true }
     val onPlaybackHead = MutableLiveData<Long>().apply { value = 0 }
     val status = MutableLiveData<StreamStatus>()
 
     private fun createTimeShift() {
-        onTimeShiftReady.value = false
         Timber.d("Subscribing to time shift observables")
         releaseTimeShiftObservers()
         renderer?.seek(0, SeekOrigin.BEGINNING)?.let { shift ->
             timeShift = shift
             timeShiftStartTime = shift.startTime.time
-            limitTimeShiftBandwidth()
             shift.observableReadyForPlaybackStatus?.subscribe { isReady ->
                 launchMain {
                     if (onTimeShiftReady.value != isReady) {
@@ -109,10 +105,8 @@ data class Stream(
 
     private fun updateSurfaces() {
         if (isMainRendered.value == false) {
-            limitBandwidth()
             limitTimeShiftBandwidth()
         } else {
-            releaseBandwidthLimiter()
             releaseTimeShiftLimiter()
         }
         thumbnailSurface?.setVisible(isMainRendered.value == false)
@@ -155,17 +149,6 @@ data class Stream(
         timeShiftLimiter = null
     }
 
-    private fun limitBandwidth() {
-        Timber.d("Limiting Bandwidth: ${toString()}")
-        bandwidthLimiter = expressSubscriber?.videoTracks?.getOrNull(0)?.limitBandwidth(BANDWIDTH_LIMIT)
-    }
-
-    private fun releaseBandwidthLimiter() {
-        Timber.d("Releasing Bandwidth limiter: ${toString()}")
-        bandwidthLimiter?.dispose()
-        bandwidthLimiter = null
-    }
-
     private fun releaseTimeShiftObservers() {
         timeShiftDisposables.forEach { it.dispose() }
         timeShiftDisposables.clear()
@@ -186,46 +169,52 @@ data class Stream(
 
     fun unmuteAudio() = renderer?.unmuteAudio()
 
-    suspend fun subscribeToStream() = suspendCancellableCoroutine<Unit> { continuation ->
+    fun subscribeToStream() = launchIO {
         Timber.d("Subscribing stream with ID: $streamId")
         val options = getStreamOptions(streamId)
         pCastExpress.subscribe(options) { requestStatus, subscriber, _ ->
-            launchMain {
-                if (requestStatus != RequestStatus.OK) {
+            if (requestStatus != RequestStatus.OK) {
+                launchMain {
                     status.value = StreamStatus.OFFLINE
+                    onStreamSubscribed.value = false
                     Timber.d("Failed to subscribe: ${asString()}")
-                    if (continuation.isActive) continuation.resume(Unit)
-                    return@launchMain
                 }
-                expressSubscriber?.dispose()
-                expressSubscriber = subscriber
-                renderer?.stop()
-                renderer?.dispose()
-                renderer = subscriber?.createRenderer()
-                if (renderer?.isSeekable == false) {
+                return@subscribe
+            }
+            expressSubscriber?.dispose()
+            expressSubscriber = subscriber
+            renderer?.stop()
+            renderer?.dispose()
+            renderer = subscriber?.createRenderer()
+            if (renderer?.isSeekable == false) {
+                launchMain {
                     status.value = StreamStatus.OFFLINE
+                    onStreamSubscribed.value = false
                     Timber.d("Stream is not seakable: ${asString()}")
-                    if (continuation.isActive) continuation.resume(Unit)
-                    return@launchMain
                 }
+                return@subscribe
+            }
 
-                val rendererStartStatus = renderer?.startSuspended(videoRenderSurface)
-                if (rendererStartStatus != RendererStartStatus.OK) {
+            val rendererStartStatus = renderer?.startSuspended(videoRenderSurface)
+            if (rendererStartStatus != RendererStartStatus.OK) {
+                launchMain {
                     status.value = StreamStatus.OFFLINE
+                    onStreamSubscribed.value = false
                     Timber.d("Failed to start renderer: ${asString()}")
-                    if (continuation.isActive) continuation.resume(Unit)
-                    return@launchMain
                 }
-                createTimeShift()
-                setVideoFrameCallback()
-                if (isMainRendered.value == true) {
-                    unmuteAudio()
-                } else {
-                    muteAudio()
-                }
+                return@subscribe
+            }
+            createTimeShift()
+            setVideoFrameCallback()
+            if (isMainRendered.value == true) {
+                unmuteAudio()
+            } else {
+                muteAudio()
+            }
+            launchMain {
                 status.value = StreamStatus.ONLINE
+                onStreamSubscribed.value = true
                 Timber.d("Started subscriber renderer: ${asString()}")
-                if (continuation.isActive) continuation.resume(Unit)
             }
         }
     }
