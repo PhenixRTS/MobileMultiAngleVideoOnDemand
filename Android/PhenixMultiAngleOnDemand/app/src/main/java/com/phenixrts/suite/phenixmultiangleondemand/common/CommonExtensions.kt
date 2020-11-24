@@ -53,7 +53,7 @@ fun AppCompatActivity.showErrorDialog(error: ExpressError) {
         .show()
 }
 
-fun View.setVisible(condition: Boolean) {
+fun View.changeVisibility(condition: Boolean) {
     val newVisibility = if (condition) View.VISIBLE else View.GONE
     if (visibility != newVisibility) {
         visibility = newVisibility

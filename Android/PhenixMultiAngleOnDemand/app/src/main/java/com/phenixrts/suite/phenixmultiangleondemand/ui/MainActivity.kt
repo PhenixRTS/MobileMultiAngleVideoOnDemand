@@ -35,7 +35,7 @@ class MainActivity : FragmentActivity() {
         StreamAdapter { roomMember ->
             Timber.d("Stream clicked: $roomMember")
             viewModel.updateActiveStream(main_stream_surface, roomMember)
-            main_stream_loading.setVisible(roomMember.onLoading.value == true)
+            main_stream_loading.changeVisibility(roomMember.onLoading.value == true)
         }
     }
 
@@ -53,8 +53,8 @@ class MainActivity : FragmentActivity() {
     private fun initViews() {
         val rotation = resources.configuration.orientation
         val spanCount = if (rotation == Configuration.ORIENTATION_PORTRAIT) SPAN_COUNT_PORTRAIT else SPAN_COUNT_LANDSCAPE
-        main_stream_holder.setVisible(true)
-        main_stream_list.setVisible(true)
+        main_stream_holder.changeVisibility(true)
+        main_stream_list.changeVisibility(true)
         main_stream_list.layoutManager = GridLayoutManager(this, spanCount)
         main_stream_list.setHasFixedSize(true)
         main_stream_list.adapter = streamAdapter
@@ -103,12 +103,12 @@ class MainActivity : FragmentActivity() {
         })
         viewModel.onTimeShiftEnded.observe(this, { hasEnded ->
             Timber.d("Time shift has ended: $hasEnded")
-            stream_ended_overlay.setVisible(hasEnded)
+            stream_ended_overlay.changeVisibility(hasEnded)
         })
         viewModel.onTimeShiftReady.observe(this, { ready ->
             Timber.d("Time shift ready: $ready")
-            main_stream_loading.setVisible(!ready)
-            play_act_holder.setVisible(ready)
+            main_stream_loading.changeVisibility(!ready)
+            play_act_holder.changeVisibility(ready)
             if(ready) viewModel.playTimeShift()
         })
         viewModel.onReplayButtonClickable.observe(this, { isClickable ->

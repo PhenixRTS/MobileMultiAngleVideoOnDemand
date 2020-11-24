@@ -8,6 +8,7 @@ import androidx.lifecycle.MutableLiveData
 import com.phenixrts.common.RequestStatus
 import com.phenixrts.environment.android.AndroidContext
 import com.phenixrts.express.*
+import com.phenixrts.suite.phenixmultiangleondemand.BuildConfig
 import com.phenixrts.suite.phenixmultiangleondemand.MultiAngleOnDemandApp
 import com.phenixrts.suite.phenixmultiangleondemand.common.*
 import com.phenixrts.suite.phenixmultiangleondemand.common.enums.ExpressError
@@ -35,12 +36,14 @@ class PCastExpressRepository(private val context: MultiAngleOnDemandApp) {
         Timber.d("Creating Channel Express with configuration: $expressConfiguration")
         AndroidContext.setContext(context)
         var pcastBuilder = PCastExpressFactory.createPCastExpressOptionsBuilder()
-            .withMinimumConsoleLogLevel("info")
+            .withMinimumConsoleLogLevel(BuildConfig.SDK_DEBUG_LEVEL)
             .withBackendUri(expressConfiguration.backend)
             .withPCastUri(expressConfiguration.uri)
             .withUnrecoverableErrorCallback { status: RequestStatus, description: String ->
-                Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
-                onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
+                launchMain {
+                    Timber.e("Unrecoverable error in PhenixSDK. Error status: [$status]. Description: [$description]")
+                    onChannelExpressError.value = ExpressError.UNRECOVERABLE_ERROR
+                }
             }
         if (expressConfiguration.edgeAuth != null) {
             pcastBuilder = pcastBuilder.withAuthenticationToken(expressConfiguration.edgeAuth)

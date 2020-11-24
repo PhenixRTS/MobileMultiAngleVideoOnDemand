@@ -25,6 +25,8 @@ import kotlinx.coroutines.delay
 import timber.log.Timber
 
 private const val BANDWIDTH_LIMIT = 1000 * 520L
+private const val TIME_SHIFT_RETRY_DELAY = 1000 * 10L
+private const val MAX_RETRY_COUNT = 10
 
 data class Stream(
     private val pCastExpress: PCastExpress,
@@ -42,7 +44,9 @@ data class Stream(
     private var timeShiftDisposables = mutableListOf<Disposable>()
     private var timeShiftSeekDisposables = mutableListOf<Disposable>()
     private var isBitmapSurfaceAvailable = false
+    private var isFirstFrameDrawn = false
     private var timeShiftStartTime: Long = 0
+    private var timeShiftCreateRetryCount = 0
 
     private var bitmapCallback: SurfaceHolder.Callback? = null
     private val frameCallback = Renderer.FrameReadyForProcessingCallback { frameNotification ->
@@ -87,9 +91,16 @@ data class Stream(
             }?.run { timeShiftDisposables.add(this) }
             shift.observableFailure?.subscribe { status ->
                 launchMain {
-                    Timber.d("Time shift failure: $status")
+                    Timber.d("Time shift failure: $status, retryCount: $timeShiftCreateRetryCount")
                     releaseTimeShift()
-                    onTimeShiftReady.value = false
+                    if (timeShiftCreateRetryCount < MAX_RETRY_COUNT) {
+                        timeShiftCreateRetryCount++
+                        delay(TIME_SHIFT_RETRY_DELAY)
+                        createTimeShift()
+                    } else {
+                        timeShiftCreateRetryCount = 0
+                        onTimeShiftReady.value = false
+                    }
                 }
             }?.run { timeShiftDisposables.add(this) }
             shift.observableEnded?.subscribe { hasEnded ->
@@ -109,32 +120,29 @@ data class Stream(
         } else {
             releaseTimeShiftLimiter()
         }
-        thumbnailSurface?.setVisible(isMainRendered.value == false)
-        bitmapSurface?.setVisible(isMainRendered.value == true)
+        thumbnailSurface?.changeVisibility(isMainRendered.value == false)
+        bitmapSurface?.changeVisibility(isMainRendered.value == true)
     }
 
     private fun setVideoFrameCallback() {
         expressSubscriber?.videoTracks?.getOrNull(0)?.let { videoTrack ->
-            renderer?.setFrameReadyCallback(videoTrack, if (isMainRendered.value == false) null else frameCallback)
+            val callback = if (isMainRendered.value == false) null else frameCallback
+            if (callback == null) isFirstFrameDrawn = false
+            renderer?.setFrameReadyCallback(videoTrack, callback)
+            Timber.d("Frame callback ${if (callback != null) "set" else "removed"} for: ${toString()}")
         }
     }
 
     private fun drawFrameBitmap(bitmap: Bitmap) {
         try {
-            if (isMainRendered.value == false || !isBitmapSurfaceAvailable) return
             launchIO {
-                delay(THUMBNAIL_DRAW_DELAY)
-                bitmapSurface?.holder?.let { holder ->
-                    holder.lockCanvas()?.let { canvas ->
-                        val targetWidth = bitmapSurface?.measuredWidth ?: 0
-                        val targetHeight = bitmapSurface?.measuredHeight ?: 0
-                        canvas.drawScaledBitmap(bitmap, targetWidth, targetHeight)
-                        holder.unlockCanvasAndPost(canvas)
-                    }
-                }
+                if (isMainRendered.value == false || !isBitmapSurfaceAvailable) return@launchIO
+                if (isFirstFrameDrawn) delay(THUMBNAIL_DRAW_DELAY)
+                bitmapSurface?.drawBitmap(bitmap)
+                isFirstFrameDrawn = true
             }
         } catch (e: Exception) {
-            Timber.d(e, "Failed to draw bitmap")
+            Timber.d(e, "Failed to draw bitmap: ${toString()}")
         }
     }
 
@@ -150,16 +158,18 @@ data class Stream(
     }
 
     private fun releaseTimeShiftObservers() {
+        val disposed = timeShiftDisposables.isNotEmpty() || timeShiftSeekDisposables.isNotEmpty()
         timeShiftDisposables.forEach { it.dispose() }
         timeShiftDisposables.clear()
         timeShiftSeekDisposables.forEach { it.dispose() }
         timeShiftSeekDisposables.clear()
-        Timber.d("Time shift disposables released")
+        if (disposed) {
+            Timber.d("Time shift disposables released: ${toString()}")
+        }
     }
 
     private fun releaseTimeShift() {
         releaseTimeShiftObservers()
-        timeShift?.stop()
         timeShift?.dispose()
         timeShift = null
         Timber.d("Time shift released")
@@ -274,7 +284,7 @@ data class Stream(
         return "{\"name\":\"$streamId\"," +
                 "\"hasRenderer\":\"${renderer != null}\"," +
                 "\"surfaceId\":\"${thumbnailSurface?.id}\"," +
-                "\"isSekable\":\"${renderer?.isSeekable}\"," +
+                "\"isSeekable\":\"${renderer?.isSeekable}\"," +
                 "\"isTimeShiftReady\":\"${onTimeShiftReady.value}\"," +
                 "\"isSubscribed\":\"${expressSubscriber != null}\"," +
                 "\"isMainRendered\":\"${isMainRendered.value}\"}"
