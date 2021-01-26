@@ -1,0 +1,28 @@
+source 'https://cdn.cocoapods.org/'
+source 'git@github.com:PhenixRTS/CocoaPodsSpecs.git' # Phenix private repository
+
+platform :ios, '12.0'
+use_frameworks!
+inhibit_all_warnings!
+
+def phenix
+  pod 'PhenixSdk', '2021.0.0-beta'
+end
+
+target 'PhenixMultiAngleOnDemand' do
+  phenix
+  pod 'SwiftLint', '~> 0.42.0'
+end
+
+target 'PhenixCore' do
+  phenix
+end
+
+# Removes warnings of dependencies containing an old deployment target version.
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    target.build_configurations.each do |config|
+      config.build_settings.delete 'IPHONEOS_DEPLOYMENT_TARGET'
+    end
+  end
+end
