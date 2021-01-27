@@ -24,7 +24,6 @@ import com.phenixrts.suite.phenixmultiangleondemand.common.enums.StreamStatus
 import kotlinx.coroutines.delay
 import timber.log.Timber
 
-private const val BANDWIDTH_LIMIT = 1000 * 520L
 private const val TIME_SHIFT_RETRY_DELAY = 1000 * 10L
 private const val MAX_RETRY_COUNT = 10
 
@@ -40,7 +39,6 @@ data class Stream(
     private var expressSubscriber: ExpressSubscriber? = null
     private var timeShift: TimeShift? = null
 
-    private var timeShiftLimiter: Disposable? = null
     private var timeShiftDisposables = mutableListOf<Disposable>()
     private var timeShiftSeekDisposables = mutableListOf<Disposable>()
     private var isBitmapSurfaceAvailable = false
@@ -115,11 +113,6 @@ data class Stream(
     }
 
     private fun updateSurfaces() {
-        if (isMainRendered.value == false) {
-            limitTimeShiftBandwidth()
-        } else {
-            releaseTimeShiftLimiter()
-        }
         thumbnailSurface?.changeVisibility(isMainRendered.value == false)
         bitmapSurface?.changeVisibility(isMainRendered.value == true)
     }
@@ -144,17 +137,6 @@ data class Stream(
         } catch (e: Exception) {
             Timber.d(e, "Failed to draw bitmap: ${toString()}")
         }
-    }
-
-    private fun limitTimeShiftBandwidth() {
-        Timber.d("Limiting TimeShift Bandwidth: ${toString()}")
-        timeShiftLimiter = timeShift?.limitBandwidth(BANDWIDTH_LIMIT)
-    }
-
-    private fun releaseTimeShiftLimiter() {
-        Timber.d("Releasing TimeShift limiter: ${toString()}")
-        timeShiftLimiter?.dispose()
-        timeShiftLimiter = null
     }
 
     private fun releaseTimeShiftObservers() {
@@ -252,7 +234,6 @@ data class Stream(
     }
 
     fun seekToAct(act: Act) = launchMain {
-        limitTimeShiftBandwidth()
         timeShiftSeekDisposables.forEach { it.dispose() }
         timeShiftSeekDisposables.clear()
         onTimeShiftEnded.value = false
@@ -275,9 +256,6 @@ data class Stream(
     fun playTimeShift() {
         Timber.d("Playing time shift")
         timeShift?.play()
-        if (isMainRendered.value == true) {
-            releaseTimeShiftLimiter()
-        }
     }
 
     override fun toString(): String {

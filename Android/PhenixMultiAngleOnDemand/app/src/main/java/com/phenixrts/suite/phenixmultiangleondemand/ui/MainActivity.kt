@@ -13,10 +13,10 @@ import com.phenixrts.suite.phenixmultiangleondemand.MultiAngleOnDemandApp
 import com.phenixrts.suite.phenixmultiangleondemand.R
 import com.phenixrts.suite.phenixmultiangleondemand.cache.PreferenceProvider
 import com.phenixrts.suite.phenixmultiangleondemand.common.*
+import com.phenixrts.suite.phenixmultiangleondemand.databinding.ActivityMainBinding
 import com.phenixrts.suite.phenixmultiangleondemand.repository.PCastExpressRepository
 import com.phenixrts.suite.phenixmultiangleondemand.ui.adapters.StreamAdapter
 import com.phenixrts.suite.phenixmultiangleondemand.ui.viewmodels.ChannelViewModel
-import kotlinx.android.synthetic.main.activity_main.*
 import timber.log.Timber
 import java.util.*
 import javax.inject.Inject
@@ -29,13 +29,16 @@ class MainActivity : FragmentActivity() {
     @Inject lateinit var pCastExpress: PCastExpressRepository
     @Inject lateinit var preferences: PreferenceProvider
 
-    private val viewModel: ChannelViewModel by lazyViewModel({ application as MultiAngleOnDemandApp }, { ChannelViewModel(pCastExpress) })
+    private lateinit var binding: ActivityMainBinding
+    private val viewModel: ChannelViewModel by lazyViewModel({ application as MultiAngleOnDemandApp }, {
+        ChannelViewModel(pCastExpress)
+    })
 
     private val streamAdapter: StreamAdapter by lazy {
         StreamAdapter { roomMember ->
             Timber.d("Stream clicked: $roomMember")
-            viewModel.updateActiveStream(main_stream_surface, roomMember)
-            main_stream_loading.changeVisibility(roomMember.onLoading.value == true)
+            viewModel.updateActiveStream(binding.mainStreamSurface, roomMember)
+            binding.mainStreamLoading.changeVisibility(roomMember.onLoading.value == true)
         }
     }
 
@@ -46,39 +49,40 @@ class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         MultiAngleOnDemandApp.component.inject(this)
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         initViews()
     }
 
-    private fun initViews() {
+    private fun initViews() = with(binding) {
         val rotation = resources.configuration.orientation
         val spanCount = if (rotation == Configuration.ORIENTATION_PORTRAIT) SPAN_COUNT_PORTRAIT else SPAN_COUNT_LANDSCAPE
-        main_stream_holder.changeVisibility(true)
-        main_stream_list.changeVisibility(true)
-        main_stream_list.layoutManager = GridLayoutManager(this, spanCount)
-        main_stream_list.setHasFixedSize(true)
-        main_stream_list.adapter = streamAdapter
+        mainStreamHolder.changeVisibility(true)
+        mainStreamList.changeVisibility(true)
+        mainStreamList.layoutManager = GridLayoutManager(this@MainActivity, spanCount)
+        mainStreamList.setHasFixedSize(true)
+        mainStreamList.adapter = streamAdapter
 
         actAdapter.setDropDownViewResource(R.layout.row_spinner_item)
-        spinner_acts.adapter = actAdapter
-        spinner_acts.onSelectionChanged { index ->
+        spinnerActs.adapter = actAdapter
+        spinnerActs.onSelectionChanged { index ->
             Timber.d("Act selected: $index")
             viewModel.selectAct(index)
         }
 
-        play_act_button.setOnClickListener {
+        playActButton.setOnClickListener {
             Timber.d("Play act button clicked")
-            viewModel.seekToAct(spinner_acts.selectedItemPosition)
+            viewModel.seekToAct(spinnerActs.selectedItemPosition)
         }
 
-        viewModel.acts.observe(this, { acts ->
+        viewModel.acts.observe(this@MainActivity, { acts ->
             Timber.d("Mime Type list updated: $acts")
             actAdapter.clear()
             actAdapter.addAll(acts.map { it.title })
 
             preferences.getAct().let { act ->
-                acts.indexOf(act).takeIf { it >= 0 && spinner_acts.selectedItemPosition != it }?.let { index ->
-                    spinner_acts.setSelection(index)
+                acts.indexOf(act).takeIf { it >= 0 && spinnerActs.selectedItemPosition != it }?.let { index ->
+                    spinnerActs.setSelection(index)
                 }
             } ?: run {
                 acts.getOrNull(0)?.let { act ->
@@ -86,33 +90,33 @@ class MainActivity : FragmentActivity() {
                 }
             }
         })
-        viewModel.streams.observe(this, { streams ->
+        viewModel.streams.observe(this@MainActivity, { streams ->
             Timber.d("Stream list updated: $streams")
             streamAdapter.data = streams
         })
-        viewModel.onStreamsSubscribed.observe(this, { isSubscribed ->
+        viewModel.onStreamsSubscribed.observe(this@MainActivity, { isSubscribed ->
             Timber.d("On all streams ready: $isSubscribed")
             if (isSubscribed) {
                 viewModel.streams.value?.find { it.isMainRendered.value == true }?.let { stream ->
-                    viewModel.updateActiveStream(main_stream_surface, stream)
+                    viewModel.updateActiveStream(mainStreamSurface, stream)
                 }
             }
         })
-        viewModel.headTimeStamp.observe(this, { head ->
-            stream_timestamp_overlay.text = Date(head).toDateString()
+        viewModel.headTimeStamp.observe(this@MainActivity, { head ->
+            streamTimestampOverlay.text = Date(head).toDateString()
         })
-        viewModel.onTimeShiftEnded.observe(this, { hasEnded ->
+        viewModel.onTimeShiftEnded.observe(this@MainActivity, { hasEnded ->
             Timber.d("Time shift has ended: $hasEnded")
-            stream_ended_overlay.changeVisibility(hasEnded)
+            streamEndedOverlay.changeVisibility(hasEnded)
         })
-        viewModel.onTimeShiftReady.observe(this, { ready ->
+        viewModel.onTimeShiftReady.observe(this@MainActivity, { ready ->
             Timber.d("Time shift ready: $ready")
-            main_stream_loading.changeVisibility(!ready)
-            play_act_holder.changeVisibility(ready)
+            mainStreamLoading.changeVisibility(!ready)
+            playActHolder.changeVisibility(ready)
             if(ready) viewModel.playTimeShift()
         })
-        viewModel.onReplayButtonClickable.observe(this, { isClickable ->
-            play_act_button.setBackgroundResource(
+        viewModel.onReplayButtonClickable.observe(this@MainActivity, { isClickable ->
+            playActButton.setBackgroundResource(
                 if (isClickable) R.drawable.bg_play_act_button else R.drawable.bg_play_act_button_disabled
             )
         })
