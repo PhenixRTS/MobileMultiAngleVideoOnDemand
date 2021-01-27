@@ -17,7 +17,6 @@
 		B58273C42508FF6600CC9EF9 /* Throttler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58273C32508FF6600CC9EF9 /* Throttler.swift */; };
 		B58273C62508FFA000CC9EF9 /* Debouncer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58273C52508FFA000CC9EF9 /* Debouncer.swift */; };
 		B591328E24E3D58600A5B7D1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B591328D24E3D58600A5B7D1 /* AppDelegate.swift */; };
-		B591329024E3D58600A5B7D1 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B591328F24E3D58600A5B7D1 /* SceneDelegate.swift */; };
 		B591329524E3D58600A5B7D1 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B591329324E3D58600A5B7D1 /* Main.storyboard */; };
 		B591329724E3D58800A5B7D1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B591329624E3D58800A5B7D1 /* Assets.xcassets */; };
 		B591329A24E3D58800A5B7D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B591329824E3D58800A5B7D1 /* LaunchScreen.storyboard */; };
@@ -102,7 +101,6 @@
 		B58273C52508FFA000CC9EF9 /* Debouncer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Debouncer.swift; sourceTree = "<group>"; };
 		B591328A24E3D58600A5B7D1 /* Phenix MultiAngle.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Phenix MultiAngle.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		B591328D24E3D58600A5B7D1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		B591328F24E3D58600A5B7D1 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		B591329424E3D58600A5B7D1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B591329624E3D58800A5B7D1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B591329924E3D58800A5B7D1 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
@@ -209,7 +207,6 @@
 			children = (
 				B5AC268A2552D526003E2AEA /* PhenixMultiAngleOnDemand.entitlements */,
 				B591328D24E3D58600A5B7D1 /* AppDelegate.swift */,
-				B591328F24E3D58600A5B7D1 /* SceneDelegate.swift */,
 				B59132F624E3F5EB00A5B7D1 /* Coordinator */,
 				B59132A224E3D62700A5B7D1 /* Managers */,
 				B59132A624E3D65600A5B7D1 /* Resources */,
@@ -621,7 +618,6 @@
 				B591328E24E3D58600A5B7D1 /* AppDelegate.swift in Sources */,
 				B5F00B1E24E566BF00540FCE /* MultiStreamPreviewCollectionViewManager.swift in Sources */,
 				B59132FA24E3F60B00A5B7D1 /* MainCoordinator.swift in Sources */,
-				B591329024E3D58600A5B7D1 /* SceneDelegate.swift in Sources */,
 				B59132EA24E3F43D00A5B7D1 /* Launcher.swift in Sources */,
 				B5F00B1C24E5600200540FCE /* MultiStreamView.swift in Sources */,
 				B59132EC24E3F46000A5B7D1 /* OSLog.swift in Sources */,

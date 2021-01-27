@@ -34,11 +34,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        if #available(iOS 13.0, *) {
-            // All magic happens in SceneDelegate.swift
-            return true
-        }
-
         // Setup main window
         let window = UIWindow(frame: UIScreen.main.bounds)
         self.window = window
@@ -75,28 +70,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         if deeplink.backend != coordinator.phenixBackend {
             terminate()
+            return false
         }
 
         if deeplink.uri != coordinator.phenixPcast {
             terminate()
+            return false
         }
 
         if let streamIDs = deeplink.streamIDs, streamIDs != coordinator.streamIDs {
             terminate()
+            return false
         }
 
         if let acts = deeplink.acts, acts != coordinator.acts {
             terminate()
+            return false
         }
 
         return true
-    }
-
-    func prepareToExit(_ window: UIWindow?) {
-        Self.terminate(
-            afterDisplayingAlertWithTitle: "Configuration has changed",
-            message: "Please start the app again to apply the changes"
-        )
     }
 }
 
