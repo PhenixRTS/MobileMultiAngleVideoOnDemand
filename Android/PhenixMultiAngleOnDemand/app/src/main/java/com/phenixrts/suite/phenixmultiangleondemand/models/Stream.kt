@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixmultiangleondemand.models
@@ -238,7 +238,7 @@ data class Stream(
         timeShiftSeekDisposables.clear()
         onTimeShiftEnded.value = false
         onLoading.value = true
-        timeShift?.pause()
+        pauseTimeShift()
         Timber.d("Paused time shift: $act")
         timeShift?.seek(act.offsetFromBeginning, SeekOrigin.BEGINNING)?.subscribe { requestStatus ->
             launchMain scope@{
@@ -253,8 +253,13 @@ data class Stream(
         }?.run { timeShiftSeekDisposables.add(this) }
     }
 
+    fun pauseTimeShift() {
+        Timber.d("Pausing time shift for: ${toString()}")
+        timeShift?.pause()
+    }
+
     fun playTimeShift() {
-        Timber.d("Playing time shift")
+        Timber.d("Playing time shift for: ${toString()}")
         timeShift?.play()
     }
 

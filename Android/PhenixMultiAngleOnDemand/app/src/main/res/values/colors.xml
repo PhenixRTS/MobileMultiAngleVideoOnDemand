@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  ~ Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
   -->
 
 <resources>
@@ -17,6 +17,8 @@
 
     <color name="colorRePlay">#FF669900</color>
     <color name="colorRePlayAccent">#558000</color>
+    <color name="colorPause">#039BE5</color>
+    <color name="colorPauseAccent">#0277BD</color>
     <color name="colorRePlayDisabled">#858585</color>
     <color name="colorRePlayDisabledAccent">#6E6E6E</color>
 </resources>

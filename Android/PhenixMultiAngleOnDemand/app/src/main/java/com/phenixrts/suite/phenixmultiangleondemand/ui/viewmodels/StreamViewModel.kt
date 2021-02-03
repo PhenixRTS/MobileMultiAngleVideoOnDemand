@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixmultiangleondemand.ui.viewmodels
@@ -41,7 +41,8 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
     val onTimeShiftReady = MutableLiveData<Boolean>().apply { value = false }
     val onTimeShiftEnded = MutableLiveData<Boolean>().apply { value = false }
     val onStreamsSubscribed = MutableLiveData<Boolean>().apply { value = true }
-    val onReplayButtonClickable = MutableLiveData<Boolean>().apply { value = true }
+    val onButtonsClickable = MutableLiveData<Boolean>().apply { value = true }
+    var isTimeShiftPaused = false
 
     init {
         Timber.d("Observing streams")
@@ -107,22 +108,30 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
     fun seekToAct(index: Int) {
         selectedAct = acts.value?.getOrNull(index) ?: acts.value?.first()
         selectedAct?.let { act ->
-            onReplayButtonClickable.value = false
+            onButtonsClickable.value = false
             streams.value?.forEach { stream ->
                 stream.seekToAct(act)
             }
             launchMain {
                 delay(REPLAY_BUTTON_CLICK_DELAY)
-                onReplayButtonClickable.value = true
+                onButtonsClickable.value = true
             }
         }
     }
 
     fun playTimeShift() {
+        isTimeShiftPaused = false
         streams.value?.forEach {  stream ->
             stream.onLoading.value = false
             stream.playTimeShift()
         }
         Timber.d("Time shift ready - playing")
+    }
+
+    fun pauseReplay() {
+        isTimeShiftPaused = true
+        streams.value?.forEach { stream ->
+            stream.pauseTimeShift()
+        }
     }
 }

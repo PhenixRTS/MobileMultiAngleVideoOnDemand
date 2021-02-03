@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixmultiangleondemand.ui
@@ -75,6 +75,18 @@ class MainActivity : FragmentActivity() {
             viewModel.seekToAct(spinnerActs.selectedItemPosition)
         }
 
+        pauseButtonIcon.setImageResource(if (viewModel.isTimeShiftPaused) R.drawable.ic_play else R.drawable.ic_pause)
+        pauseButton.setOnClickListener {
+            Timber.d("Pause clicked")
+            if (viewModel.isTimeShiftPaused) {
+                viewModel.playTimeShift()
+                pauseButtonIcon.setImageResource(R.drawable.ic_pause)
+            } else {
+                viewModel.pauseReplay()
+                pauseButtonIcon.setImageResource(R.drawable.ic_play)
+            }
+        }
+
         viewModel.acts.observe(this@MainActivity, { acts ->
             Timber.d("Mime Type list updated: $acts")
             actAdapter.clear()
@@ -113,13 +125,16 @@ class MainActivity : FragmentActivity() {
             Timber.d("Time shift ready: $ready")
             mainStreamLoading.changeVisibility(!ready)
             playActHolder.changeVisibility(ready)
-            if(ready) viewModel.playTimeShift()
+            playActButton.isEnabled = ready
+            pauseButton.isEnabled = ready
+            if(ready && !viewModel.isTimeShiftPaused) viewModel.playTimeShift()
         })
-        viewModel.onReplayButtonClickable.observe(this@MainActivity, { isClickable ->
-            playActButton.setBackgroundResource(
-                if (isClickable) R.drawable.bg_play_act_button else R.drawable.bg_play_act_button_disabled
-            )
+        viewModel.onButtonsClickable.observe(this@MainActivity, { isClickable ->
+            playActButton.isEnabled = isClickable
+            pauseButton.isEnabled = isClickable
         })
+        playActButton.isEnabled = false
+        pauseButton.isEnabled = false
         Timber.d("Initializing Main Activity: $rotation")
     }
 }

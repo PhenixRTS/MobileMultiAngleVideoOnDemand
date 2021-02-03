@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2020 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  ~ Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
   -->
 
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -106,6 +106,7 @@
             android:layout_marginStart="4dp"
             android:layout_marginEnd="8dp"
             android:gravity="center_vertical"
+            android:elevation="5dp"
             android:background="@drawable/bg_spinner"
             android:orientation="horizontal">
 
@@ -123,27 +124,20 @@
             android:layout_height="48dp"
             android:layout_weight="1"
             android:layout_marginStart="8dp"
-            android:layout_marginEnd="4dp"
+            android:layout_marginEnd="16dp"
             android:gravity="center"
+            android:elevation="5dp"
             android:orientation="horizontal"
-            android:background="@drawable/bg_play_act_button"
+            android:background="@drawable/bg_play_act_selector"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintBottom_toBottomOf="parent">
-
-            <ImageView
-                android:id="@+id/play_act_button_icon"
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@drawable/ic_play"
-                android:contentDescription="@null" />
 
             <TextView
                 android:id="@+id/play_act_button_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/button_play_act"
-                android:layout_marginStart="8dp"
                 android:textAllCaps="true"
                 android:textColor="@color/primaryTextColor"
                 android:fontFamily="sans-serif-medium"
@@ -151,6 +145,23 @@
                 android:gravity="center"/>
 
         </LinearLayout>
+
+        <FrameLayout
+            android:id="@+id/pause_button"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:elevation="5dp"
+            android:background="@drawable/bg_pause_selector">
+
+            <ImageView
+                android:id="@+id/pause_button_icon"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:padding="8dp"
+                android:contentDescription="@null"
+                android:src="@drawable/ic_pause" />
+
+        </FrameLayout>
 
     </LinearLayout>
 
