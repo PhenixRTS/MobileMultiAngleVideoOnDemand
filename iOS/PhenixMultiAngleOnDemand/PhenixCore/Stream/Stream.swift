@@ -71,6 +71,7 @@ public extension Stream {
         case loading
         case readyToPlay
         case playing
+        case paused
         case ended
         case failure
     }

@@ -39,15 +39,20 @@ public class StreamActController {
         worker?.subscribeForStatusEvents()
     }
 
-    public func startAct() {
+    public func playAct() {
         guard state != .failure else { return }
         os_log(.debug, log: .actController, "Start act, (%{PRIVATE}s)", streamDescription)
-        worker?.start()
+        worker?.play()
     }
 
     public func stopAct() {
         os_log(.debug, log: .actController, "Stop act, (%{PRIVATE}s)", streamDescription)
         worker?.stop()
+    }
+
+    public func pauseAct() {
+        os_log(.debug, log: .actController, "Pause act, (%{PRIVATE}s)", streamDescription)
+        worker?.pause()
     }
 
     public func startObservingPlaybackHead() {
@@ -174,6 +179,8 @@ extension StreamActController: TimeShiftDelegate {
             self.state = .readyToPlay
         case .playing:
             self.state = .playing
+        case .paused:
+            self.state = .paused
         case .ended:
             self.state = .ended
         case .failure:

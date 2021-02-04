@@ -93,7 +93,8 @@ class MultiStreamPreviewCollectionViewCell: UICollectionViewCell {
 
     func process(state: Stream.State) {
         switch state {
-        case .playing:
+        case .playing,
+             .paused:
             self.state = .playing
 
         case .loading,

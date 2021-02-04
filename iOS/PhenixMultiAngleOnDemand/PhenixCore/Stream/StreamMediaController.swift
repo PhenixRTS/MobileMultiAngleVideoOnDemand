@@ -118,6 +118,7 @@ private extension StreamMediaController {
 
         if secondaryPreviewLayer.isReadyForMoreMediaData {
             if let frame = nativeVideoFrame.createSampleBufferFrame() {
+                modify(frame)
                 secondaryPreviewLayer.enqueue(frame)
             }
         }

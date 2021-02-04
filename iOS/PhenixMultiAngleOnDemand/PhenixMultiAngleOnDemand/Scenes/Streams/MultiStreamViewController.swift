@@ -120,9 +120,11 @@ private extension MultiStreamViewController {
 
     /// Play streams
     ///
-    /// Will play those streams, which are in *Stream.State.readyToPlay* state.
+    /// Will play those streams, which are in state *Stream.State.readyToPlay* or *Stream.State.paused*.
     func playStreams() {
-        streams.forEachAct(withState: .readyToPlay) { $0.startAct() }
+        streams.forEachAct(withState: .readyToPlay) { $0.playAct() }
+        streams.forEachAct(withState: .paused) { $0.playAct() }
+
         selectedStream?.actController?.startObservingPlaybackHead()
         state = .playing
     }
@@ -142,6 +144,8 @@ private extension MultiStreamViewController {
     // MARK: - Property Observers
 
     func selectedStreamDidChange(oldStream: Stream?, newStream: Stream?) {
+        guard oldStream != newStream else { return }
+
         oldStream?.actController?.stopObservingPlaybackHead()
 
         guard let stream = newStream else { return }
@@ -171,6 +175,11 @@ extension MultiStreamViewController: StreamObserver {
                 return
             }
 
+            if state == .paused {
+                self.state = .paused
+                return
+            }
+
             self.playStreamsIfPossible()
 
             guard state == .playing else { return }
@@ -184,12 +193,20 @@ extension MultiStreamViewController: StreamObserver {
 
 // MARK: - MultiStreamViewDelegate
 extension MultiStreamViewController: MultiStreamViewDelegate {
-    func actConfigurationButtonTapped() {
+    func configureAct() {
         showAvailableActs()
     }
 
-    func restartActConfiguration() {
+    func restartAct() {
         // Do nothing
+    }
+
+    func pauseAct() {
+        streams.forEachAct(withState: .playing) { $0.pauseAct() }
+    }
+
+    func playAct() {
+        playStreamsIfPossible()
     }
 }
 

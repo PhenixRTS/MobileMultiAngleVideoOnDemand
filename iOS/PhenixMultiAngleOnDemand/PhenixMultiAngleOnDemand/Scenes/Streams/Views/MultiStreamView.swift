@@ -5,8 +5,10 @@
 import UIKit
 
 protocol MultiStreamViewDelegate: AnyObject {
-    func actConfigurationButtonTapped()
-    func restartActConfiguration()
+    func configureAct()
+    func restartAct()
+    func pauseAct()
+    func playAct()
 }
 
 class MultiStreamView: UIView {
@@ -34,19 +36,31 @@ class MultiStreamView: UIView {
     @IBOutlet private var loadingButton: UIButton!
     @IBOutlet private var timerLabel: UILabel!
     @IBOutlet private var timerContainerView: UIView!
+    @IBOutlet private var playButton: UIButton!
+    @IBOutlet private var pauseButton: UIButton!
 
     @IBAction
     private func selectActButtonTapped(_ sender: UIButton) {
-        delegate?.actConfigurationButtonTapped()
+        delegate?.configureAct()
     }
 
     @IBAction
     private func selectActFailedButtonTapped(_ sender: UIButton) {
-        delegate?.restartActConfiguration()
+        delegate?.restartAct()
+    }
+
+    @IBAction
+    private func playButtonTapped(_ sender: UIButton) {
+        delegate?.playAct()
+    }
+
+    @IBAction
+    private func pauseButtonTapped(_ sender: UIButton) {
+        delegate?.pauseAct()
     }
 
     func configureUIElements() {
-        let buttons: [UIButton] = [selectActButton, selectActFailedButton, loadingButton]
+        let buttons: [UIButton] = [selectActButton, selectActFailedButton, loadingButton, playButton, pauseButton]
 
         buttons.forEach { button in
             button.layer.cornerRadius = 10
@@ -91,14 +105,16 @@ class MultiStreamView: UIView {
 // MARK: - Private methods
 private extension MultiStreamView {
     func setControlVisibility(forActState state: State) {
-        let showSelectAct = state == .playing || state == .failure || state == .ended
+        let showSelectAct = state == .playing || state == .paused || state == .failure || state == .ended
         selectActButton.isHidden = showSelectAct == false
         selectActFailedButton.isHidden = state != .failure
         loadingButton.isHidden = state != .loading && state != .readyToPlay
+        playButton.isHidden = state != .paused
+        pauseButton.isHidden = state != .playing
     }
 
     func setControlInteraction(forActState state: State) {
-        let isSelectActEnabled = state == .readyToPlay || state == .playing || state == .ended
+        let isSelectActEnabled = state == .readyToPlay || state == .playing || state == .paused || state == .ended
         selectActButton.isEnabled = isSelectActEnabled
         selectActButton.alpha = isSelectActEnabled ? 1 : 0.5
     }

@@ -78,7 +78,7 @@
                                 <rect key="frame" x="20" y="798" width="374" height="44"/>
                                 <subviews>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Xmc-pR-g67">
-                                        <rect key="frame" x="0.0" y="0.0" width="91.5" height="44"/>
+                                        <rect key="frame" x="0.0" y="0.0" width="35" height="44"/>
                                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="44" id="VCX-9I-8g5"/>
@@ -89,8 +89,8 @@
                                             <action selector="selectActButtonTapped:" destination="8bC-Xf-vdC" eventType="touchUpInside" id="QMH-bl-0EJ"/>
                                         </connections>
                                     </button>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ec7-YF-Dv6">
-                                        <rect key="frame" x="141.5" y="0.0" width="91" height="44"/>
+                                    <button opaque="NO" userInteractionEnabled="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ec7-YF-Dv6">
+                                        <rect key="frame" x="85" y="0.0" width="34.5" height="44"/>
                                         <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="44" id="3sc-gE-N35"/>
@@ -99,8 +99,34 @@
                                         <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                                         <state key="normal" title="STARTING"/>
                                     </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2ca-hN-KgU">
+                                        <rect key="frame" x="169.5" y="0.0" width="35" height="44"/>
+                                        <color key="backgroundColor" systemColor="systemBlueColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="44" id="cve-VB-gNq"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <state key="normal" image="play.fill"/>
+                                        <connections>
+                                            <action selector="playButtonTapped:" destination="8bC-Xf-vdC" eventType="touchUpInside" id="hNj-Ty-50h"/>
+                                        </connections>
+                                    </button>
+                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="RtL-sQ-2fw">
+                                        <rect key="frame" x="254.5" y="0.0" width="34.5" height="44"/>
+                                        <color key="backgroundColor" systemColor="systemBlueColor"/>
+                                        <constraints>
+                                            <constraint firstAttribute="height" constant="44" id="TWe-ll-MOp"/>
+                                        </constraints>
+                                        <fontDescription key="fontDescription" type="system" pointSize="18"/>
+                                        <color key="tintColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+                                        <state key="normal" image="pause.fill"/>
+                                        <connections>
+                                            <action selector="pauseButtonTapped:" destination="8bC-Xf-vdC" eventType="touchUpInside" id="7oq-Gi-2ui"/>
+                                        </connections>
+                                    </button>
                                     <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="fYt-60-l0l">
-                                        <rect key="frame" x="282.5" y="0.0" width="91.5" height="44"/>
+                                        <rect key="frame" x="339" y="0.0" width="35" height="44"/>
                                         <color key="backgroundColor" systemColor="systemRedColor"/>
                                         <constraints>
                                             <constraint firstAttribute="height" constant="44" id="mpH-bR-0eC"/>
@@ -178,6 +204,8 @@
                         </variation>
                         <connections>
                             <outlet property="loadingButton" destination="ec7-YF-Dv6" id="LXs-gI-Amr"/>
+                            <outlet property="pauseButton" destination="RtL-sQ-2fw" id="GgW-KS-Z9I"/>
+                            <outlet property="playButton" destination="2ca-hN-KgU" id="HSi-2o-Upg"/>
                             <outlet property="primaryPreview" destination="Cpg-FC-1eR" id="cKW-mR-HO4"/>
                             <outlet property="secondaryPreviewCollectionView" destination="JMA-58-eYO" id="w1r-LY-cYz"/>
                             <outlet property="selectActButton" destination="Xmc-pR-g67" id="RHk-Mr-O8v"/>
@@ -242,11 +270,16 @@
     </scenes>
     <resources>
         <image name="logo_phenix" width="100" height="100"/>
+        <image name="pause.fill" width="8" height="11"/>
+        <image name="play.fill" width="10" height="11"/>
         <namedColor name="launchscreen_background">
             <color red="0.20000000298023224" green="0.20000000298023224" blue="0.20000000298023224" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </namedColor>
         <systemColor name="systemBackgroundColor">
             <color white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+        </systemColor>
+        <systemColor name="systemBlueColor">
+            <color red="0.0" green="0.47843137254901963" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
         </systemColor>
         <systemColor name="systemRedColor">
             <color red="1" green="0.23137254901960785" blue="0.18823529411764706" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>

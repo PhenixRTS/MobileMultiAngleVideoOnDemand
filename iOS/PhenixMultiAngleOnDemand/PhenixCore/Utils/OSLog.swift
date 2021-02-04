@@ -5,7 +5,7 @@
 import Foundation
 import os.log
 
-// swiftlint:disable identifier_name force_unwrapping
+// swiftlint:disable force_unwrapping
 extension OSLog {
     private static var subsystem = Bundle.main.bundleIdentifier!
 

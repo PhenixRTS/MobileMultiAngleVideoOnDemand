@@ -67,12 +67,13 @@ public class TimeShiftWorker {
         seekDisposable = nil
     }
 
-    func start() {
-        guard state == .readyToPlay else {
-            os_log(.debug, log: .timeShift, "TimeShift is not ready, can't start - %{PRIVATE}s, (%{PRIVATE}s)", String(describing: state), streamDescription)
+    func play() {
+        guard state == .readyToPlay || state == .paused else {
+            os_log(.debug, log: .timeShift, "TimeShift is not ready, can't play - %{PRIVATE}s, (%{PRIVATE}s)", String(describing: state), streamDescription)
             return
         }
-        os_log(.debug, log: .timeShift, "Play timeshift, (%{PRIVATE}s)", streamDescription)
+
+        os_log(.debug, log: .timeShift, "Play TimeShift, (%{PRIVATE}s)", streamDescription)
         state = .playing
         timeShift.play()
     }
@@ -88,9 +89,20 @@ public class TimeShiftWorker {
             return
         }
 
-        os_log(.debug, log: .timeShift, "Stop timeshift, (%{PRIVATE}s)", streamDescription)
+        os_log(.debug, log: .timeShift, "Stop TimeShift, (%{PRIVATE}s)", streamDescription)
         state = forceFailure == true ? .failure(forced: true) : .readyToPlay
         timeShift.stop()
+    }
+
+    func pause() {
+        guard state == .playing else {
+            os_log(.debug, log: .timeShift, "TimeShift is not playing, can't pause - %{PRIVATE}s, (%{PRIVATE}s)", String(describing: state), streamDescription)
+            return
+        }
+
+        os_log(.debug, log: .timeShift, "Pause TimeShift, (%{PRIVATE}s)", streamDescription)
+        state = .paused
+        timeShift.pause()
     }
 
     func set(_ act: Act) {
@@ -112,24 +124,33 @@ public class TimeShiftWorker {
     }
 }
 
+// MARK: - TimeShiftWorker.TimeShiftError
 public extension TimeShiftWorker {
     enum TimeShiftError: Error {
         case rendererNotSeekable
     }
+}
 
+// MARK: - TimeShiftWorker.State
+public extension TimeShiftWorker {
     enum State: Equatable {
         case starting
         case seeking
         case readyToPlay
         case playing
+        case paused
         case ended
         case failure(forced: Bool)
     }
 }
 
+// MARK: - Private methods
 private extension TimeShiftWorker {
     var streamDescription: String { streamRepresentation?.id ?? "-" }
+}
 
+// MARK: - Observable callbacks
+private extension TimeShiftWorker {
     func timeShiftReadyForPlaybackStatusDidChange(_ changes: PhenixObservableChange<NSNumber>?) {
         guard let value = changes?.value else { return }
         let isAvailable = Bool(truncating: value)
