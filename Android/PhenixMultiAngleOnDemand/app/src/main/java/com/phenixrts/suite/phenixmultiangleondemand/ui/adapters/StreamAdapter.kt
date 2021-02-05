@@ -32,7 +32,7 @@ class StreamAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val stream = data[position]
         holder.binding.stream = stream
-        stream.setThumbnailSurfaces(holder.binding.itemStreamSurface, holder.binding.itemBitmapSurface)
+        stream.setThumbnailSurfaces(holder.binding.itemStreamSurface, holder.binding.itemBitmapImage)
         stream.isMainRendered.observeForever {
             holder.binding.stream = stream
         }

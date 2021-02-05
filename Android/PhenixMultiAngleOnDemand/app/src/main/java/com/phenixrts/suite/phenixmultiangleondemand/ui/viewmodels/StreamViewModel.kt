@@ -5,6 +5,7 @@
 package com.phenixrts.suite.phenixmultiangleondemand.ui.viewmodels
 
 import android.view.SurfaceView
+import android.widget.ImageView
 import androidx.lifecycle.*
 import androidx.lifecycle.Observer
 import com.phenixrts.suite.phenixmultiangleondemand.models.Act
@@ -82,17 +83,17 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
         onStreamsSubscribed.value = isSubscribed
     }
 
-    fun updateActiveStream(surfaceView: SurfaceView, stream: Stream) = launchMain {
+    fun updateActiveStream(surfaceView: SurfaceView, bitmapView: ImageView?,  stream: Stream) = launchMain {
         val streams = streams.value?.toMutableList() ?: mutableListOf()
         streams.filter { it.isMainRendered.value == true && it.streamId != stream.streamId }.forEach { stream ->
             stream.isMainRendered.value = false
-            stream.setMainSurface(null)
+            stream.setMainSurfaces(null, null)
             stream.muteAudio()
             stream.onPlaybackHead.removeObserver(playbackHeadObserver)
         }
         streams.find { it.streamId == stream.streamId }?.apply {
             isMainRendered.value = true
-            setMainSurface(surfaceView)
+            setMainSurfaces(surfaceView, bitmapView)
             unmuteAudio()
             onPlaybackHead.observeForever(playbackHeadObserver)
         }

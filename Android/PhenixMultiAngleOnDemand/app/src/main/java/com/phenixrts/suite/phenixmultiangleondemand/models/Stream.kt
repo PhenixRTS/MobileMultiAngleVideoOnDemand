@@ -5,8 +5,8 @@
 package com.phenixrts.suite.phenixmultiangleondemand.models
 
 import android.graphics.Bitmap
-import android.view.SurfaceHolder
 import android.view.SurfaceView
+import android.widget.ImageView
 import androidx.lifecycle.MutableLiveData
 import com.phenixrts.common.Disposable
 import com.phenixrts.common.RequestStatus
@@ -34,19 +34,19 @@ data class Stream(
 
     private val videoRenderSurface = AndroidVideoRenderSurface()
     private var thumbnailSurface: SurfaceView? = null
-    private var bitmapSurface: SurfaceView? = null
+    private var thumbnailBitmapSurface: ImageView? = null
+    private var mainSurface: SurfaceView? = null
+    private var mainBitmapSurface: ImageView? = null
     private var renderer: Renderer? = null
     private var expressSubscriber: ExpressSubscriber? = null
     private var timeShift: TimeShift? = null
-
     private var timeShiftDisposables = mutableListOf<Disposable>()
     private var timeShiftSeekDisposables = mutableListOf<Disposable>()
-    private var isBitmapSurfaceAvailable = false
     private var isFirstFrameDrawn = false
     private var timeShiftStartTime: Long = 0
     private var timeShiftCreateRetryCount = 0
-
-    private var bitmapCallback: SurfaceHolder.Callback? = null
+    private var lastRenderedBitmap: Bitmap? = null
+    private var isTimeShiftPaused = false
     private val frameCallback = Renderer.FrameReadyForProcessingCallback { frameNotification ->
         if (isMainRendered.value == false) return@FrameReadyForProcessingCallback
         frameNotification?.read(object : AndroidReadVideoFrameCallback() {
@@ -56,6 +56,15 @@ data class Stream(
                 }
             }
         })
+    }
+    private val lastFrameCallback = Renderer.LastFrameRenderedReceivedCallback { _, videoFrame ->
+        (videoFrame as? AndroidVideoFrame)?.bitmap?.let { bitmap ->
+            lastRenderedBitmap?.recycle()
+            if (isTimeShiftPaused) {
+                lastRenderedBitmap = bitmap.copy(bitmap.config, bitmap.isMutable)
+                restoreLastBitmap()
+            }
+        }
     }
 
     val onTimeShiftReady = MutableLiveData<Boolean>().apply { value = false }
@@ -112,30 +121,50 @@ data class Stream(
         }
     }
 
-    private fun updateSurfaces() {
-        thumbnailSurface?.changeVisibility(isMainRendered.value == false)
-        bitmapSurface?.changeVisibility(isMainRendered.value == true)
-    }
-
     private fun setVideoFrameCallback() {
         expressSubscriber?.videoTracks?.getOrNull(0)?.let { videoTrack ->
             val callback = if (isMainRendered.value == false) null else frameCallback
             if (callback == null) isFirstFrameDrawn = false
             renderer?.setFrameReadyCallback(videoTrack, callback)
+            renderer?.setLastVideoFrameRenderedReceivedCallback(lastFrameCallback)
             Timber.d("Frame callback ${if (callback != null) "set" else "removed"} for: ${toString()}")
         }
     }
 
     private fun drawFrameBitmap(bitmap: Bitmap) {
         try {
-            launchIO {
-                if (isMainRendered.value == false || !isBitmapSurfaceAvailable) return@launchIO
+            launchMain {
+                if (isMainRendered.value == false || isTimeShiftPaused || bitmap.isRecycled) return@launchMain
                 if (isFirstFrameDrawn) delay(THUMBNAIL_DRAW_DELAY)
-                bitmapSurface?.drawBitmap(bitmap)
+                thumbnailBitmapSurface?.setImageBitmap(bitmap.copy(bitmap.config, bitmap.isMutable))
                 isFirstFrameDrawn = true
             }
         } catch (e: Exception) {
             Timber.d(e, "Failed to draw bitmap: ${toString()}")
+        }
+    }
+
+    private fun updateSurfaces() {
+        if (isMainRendered.value == true) {
+            mainSurface?.changeVisibility(!isTimeShiftPaused)
+            mainBitmapSurface?.changeVisibility(isTimeShiftPaused)
+            thumbnailBitmapSurface?.changeVisibility(true)
+        } else {
+            thumbnailSurface?.changeVisibility(!isTimeShiftPaused)
+            thumbnailBitmapSurface?.changeVisibility(isTimeShiftPaused)
+        }
+    }
+
+    private fun restoreLastBitmap() = launchMain {
+        updateSurfaces()
+        if (isTimeShiftPaused) {
+            lastRenderedBitmap?.takeIf { !it.isRecycled }?.let { bitmap ->
+                Timber.d("Restoring bitmap for: ${asString()}")
+                if (isMainRendered.value == true) {
+                    mainBitmapSurface?.setImageBitmap(bitmap.copy(bitmap.config, bitmap.isMutable))
+                }
+                thumbnailBitmapSurface?.setImageBitmap(bitmap.copy(bitmap.config, bitmap.isMutable))
+            }
         }
     }
 
@@ -211,26 +240,24 @@ data class Stream(
         }
     }
 
-    fun setThumbnailSurfaces(thumbnailSurfaceView: SurfaceView, bitmapSurfaceView: SurfaceView) {
-        thumbnailSurface = thumbnailSurfaceView
-        bitmapSurface = bitmapSurfaceView
-        bitmapSurface?.holder?.removeCallback(bitmapCallback)
-        bitmapCallback = bitmapSurface?.setCallback { available ->
-            isBitmapSurfaceAvailable = available
-        }
+    fun setThumbnailSurfaces(surfaceView: SurfaceView, imageView: ImageView) {
+        thumbnailSurface = surfaceView
+        thumbnailBitmapSurface = imageView
         if (isMainRendered.value == false) {
-            videoRenderSurface.setSurfaceHolder(thumbnailSurfaceView.holder)
-            updateSurfaces()
+            videoRenderSurface.setSurfaceHolder(surfaceView.holder)
             setVideoFrameCallback()
         }
         Timber.d("Changed member thumbnail surface: ${asString()}")
+        restoreLastBitmap()
     }
 
-    fun setMainSurface(surfaceView: SurfaceView?) {
-        videoRenderSurface.setSurfaceHolder(surfaceView?.holder ?: thumbnailSurface?.holder)
-        updateSurfaces()
+    fun setMainSurfaces(mainSurfaceView: SurfaceView?, mainBitmapSurfaceView: ImageView?) {
+        mainSurface = mainSurfaceView
+        mainBitmapSurface = mainBitmapSurfaceView
+        videoRenderSurface.setSurfaceHolder(mainSurfaceView?.holder ?: thumbnailSurface?.holder)
         setVideoFrameCallback()
         Timber.d("Changed member main surface: ${asString()}")
+        restoreLastBitmap()
     }
 
     fun seekToAct(act: Act) = launchMain {
@@ -255,11 +282,16 @@ data class Stream(
 
     fun pauseTimeShift() {
         Timber.d("Pausing time shift for: ${toString()}")
+        isTimeShiftPaused = true
         timeShift?.pause()
+        renderer?.requestLastVideoFrameRendered()
     }
 
     fun playTimeShift() {
         Timber.d("Playing time shift for: ${toString()}")
+        isTimeShiftPaused = false
+        lastRenderedBitmap?.recycle()
+        updateSurfaces()
         timeShift?.play()
     }
 

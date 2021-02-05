@@ -37,7 +37,7 @@ class MainActivity : FragmentActivity() {
     private val streamAdapter: StreamAdapter by lazy {
         StreamAdapter { roomMember ->
             Timber.d("Stream clicked: $roomMember")
-            viewModel.updateActiveStream(binding.mainStreamSurface, roomMember)
+            viewModel.updateActiveStream(binding.mainStreamSurface, binding.mainBitmapImage, roomMember)
             binding.mainStreamLoading.changeVisibility(roomMember.onLoading.value == true)
         }
     }
@@ -110,7 +110,7 @@ class MainActivity : FragmentActivity() {
             Timber.d("On all streams ready: $isSubscribed")
             if (isSubscribed) {
                 viewModel.streams.value?.find { it.isMainRendered.value == true }?.let { stream ->
-                    viewModel.updateActiveStream(mainStreamSurface, stream)
+                    viewModel.updateActiveStream(mainStreamSurface, mainBitmapImage, stream)
                 }
             }
         })

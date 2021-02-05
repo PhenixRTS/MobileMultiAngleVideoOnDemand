@@ -19,7 +19,6 @@
         android:foreground="@drawable/bg_surface"
         android:visibility="invisible"
         tools:visibility="visible"
-        android:animateLayoutChanges="true"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -29,6 +28,14 @@
             android:id="@+id/main_stream_surface"
             android:layout_width="match_parent"
             android:layout_height="match_parent" />
+
+        <ImageView
+            android:id="@+id/main_bitmap_image"
+            android:scaleType="centerCrop"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:visibility="gone" />
 
         <FrameLayout
             android:id="@+id/main_stream_loading"

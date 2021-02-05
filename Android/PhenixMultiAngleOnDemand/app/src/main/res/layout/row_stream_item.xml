@@ -37,11 +37,13 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
 
-            <SurfaceView
-                android:id="@+id/item_bitmap_surface"
+            <ImageView
+                android:id="@+id/item_bitmap_image"
+                android:scaleType="centerCrop"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:visibility="gone"/>
+                android:contentDescription="@null"
+                android:visibility="gone" />
 
             <FrameLayout
                 android:visibility="@{stream.onLoading ? View.VISIBLE : View.GONE}"
