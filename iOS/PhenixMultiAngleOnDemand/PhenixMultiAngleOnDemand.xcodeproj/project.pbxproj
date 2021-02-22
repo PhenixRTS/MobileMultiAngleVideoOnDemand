@@ -12,6 +12,7 @@
 		B50AE82E24F54681001DD9AA /* CATransaction+NoAnimations.swift in Sources */ = {isa = PBXBuildFile; fileRef = B50AE82D24F54681001DD9AA /* CATransaction+NoAnimations.swift */; };
 		B51141C324FD0CDE007584A1 /* CVPixelBuffer+Extension.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51141C224FD0CDE007584A1 /* CVPixelBuffer+Extension.swift */; };
 		B51E2D7E24F642A6000D4A69 /* StreamObserver.swift in Sources */ = {isa = PBXBuildFile; fileRef = B51E2D7D24F642A6000D4A69 /* StreamObserver.swift */; };
+		B540508625E3F21F002E1421 /* PhenixDeeplinkModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B540508525E3F21F002E1421 /* PhenixDeeplinkModel.swift */; };
 		B57334962562BF3B004E10AE /* Act.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57334952562BF3B004E10AE /* Act.swift */; };
 		B57BC89D254967D200E6BC20 /* StreamActController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B57BC89C254967D200E6BC20 /* StreamActController.swift */; };
 		B58273C42508FF6600CC9EF9 /* Throttler.swift in Sources */ = {isa = PBXBuildFile; fileRef = B58273C32508FF6600CC9EF9 /* Throttler.swift */; };
@@ -37,9 +38,6 @@
 		B59132F524E3F5A100A5B7D1 /* DependencyContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59132F424E3F5A100A5B7D1 /* DependencyContainer.swift */; };
 		B59132F824E3F5FA00A5B7D1 /* Coordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59132F724E3F5FA00A5B7D1 /* Coordinator.swift */; };
 		B59132FA24E3F60B00A5B7D1 /* MainCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = B59132F924E3F60B00A5B7D1 /* MainCoordinator.swift */; };
-		B5AC26692552C7FD003E2AEA /* DeeplinkModelProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AC26662552C7FD003E2AEA /* DeeplinkModelProvider.swift */; };
-		B5AC266A2552C7FD003E2AEA /* DeeplinkModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AC26672552C7FD003E2AEA /* DeeplinkModel.swift */; };
-		B5AC266B2552C7FD003E2AEA /* DeeplinkService.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5AC26682552C7FD003E2AEA /* DeeplinkService.swift */; };
 		B5B0BBE724EFBEC600A45C82 /* MultiStreamPreviewCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5B0BBE624EFBEC600A45C82 /* MultiStreamPreviewCollectionViewCell.swift */; };
 		B5E18E542500E89600449E67 /* TimeShiftWorker.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E18E532500E89600449E67 /* TimeShiftWorker.swift */; };
 		B5E3841124F54F76006077DF /* PhenixOptionBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = B5E3841024F54F76006077DF /* PhenixOptionBuilder.swift */; };
@@ -95,6 +93,7 @@
 		B50AE82D24F54681001DD9AA /* CATransaction+NoAnimations.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CATransaction+NoAnimations.swift"; sourceTree = "<group>"; };
 		B51141C224FD0CDE007584A1 /* CVPixelBuffer+Extension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "CVPixelBuffer+Extension.swift"; sourceTree = "<group>"; };
 		B51E2D7D24F642A6000D4A69 /* StreamObserver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamObserver.swift; sourceTree = "<group>"; };
+		B540508525E3F21F002E1421 /* PhenixDeeplinkModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PhenixDeeplinkModel.swift; sourceTree = "<group>"; };
 		B57334952562BF3B004E10AE /* Act.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Act.swift; sourceTree = "<group>"; };
 		B57BC89C254967D200E6BC20 /* StreamActController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreamActController.swift; sourceTree = "<group>"; };
 		B58273C32508FF6600CC9EF9 /* Throttler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Throttler.swift; sourceTree = "<group>"; };
@@ -122,9 +121,6 @@
 		B59132F424E3F5A100A5B7D1 /* DependencyContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DependencyContainer.swift; sourceTree = "<group>"; };
 		B59132F724E3F5FA00A5B7D1 /* Coordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Coordinator.swift; sourceTree = "<group>"; };
 		B59132F924E3F60B00A5B7D1 /* MainCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainCoordinator.swift; sourceTree = "<group>"; };
-		B5AC26662552C7FD003E2AEA /* DeeplinkModelProvider.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeeplinkModelProvider.swift; sourceTree = "<group>"; };
-		B5AC26672552C7FD003E2AEA /* DeeplinkModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeeplinkModel.swift; sourceTree = "<group>"; };
-		B5AC26682552C7FD003E2AEA /* DeeplinkService.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DeeplinkService.swift; sourceTree = "<group>"; };
 		B5AC268A2552D526003E2AEA /* PhenixMultiAngleOnDemand.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = PhenixMultiAngleOnDemand.entitlements; sourceTree = "<group>"; };
 		B5B0BBE624EFBEC600A45C82 /* MultiStreamPreviewCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MultiStreamPreviewCollectionViewCell.swift; sourceTree = "<group>"; };
 		B5E18E532500E89600449E67 /* TimeShiftWorker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeShiftWorker.swift; sourceTree = "<group>"; };
@@ -182,6 +178,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		B540508425E3F20E002E1421 /* Deeplink */ = {
+			isa = PBXGroup;
+			children = (
+				B540508525E3F21F002E1421 /* PhenixDeeplinkModel.swift */,
+			);
+			path = Deeplink;
+			sourceTree = "<group>";
+		};
 		B591328124E3D58600A5B7D1 = {
 			isa = PBXGroup;
 			children = (
@@ -208,6 +212,7 @@
 				B5AC268A2552D526003E2AEA /* PhenixMultiAngleOnDemand.entitlements */,
 				B591328D24E3D58600A5B7D1 /* AppDelegate.swift */,
 				B59132F624E3F5EB00A5B7D1 /* Coordinator */,
+				B540508425E3F20E002E1421 /* Deeplink */,
 				B59132A224E3D62700A5B7D1 /* Managers */,
 				B59132A624E3D65600A5B7D1 /* Resources */,
 				B59132A124E3D61800A5B7D1 /* Scenes */,
@@ -232,7 +237,6 @@
 			children = (
 				B59132E924E3F43D00A5B7D1 /* Launcher.swift */,
 				B59132F424E3F5A100A5B7D1 /* DependencyContainer.swift */,
-				B5AC26652552C7FD003E2AEA /* Deeplink */,
 			);
 			path = Managers;
 			sourceTree = "<group>";
@@ -345,16 +349,6 @@
 				B59132F924E3F60B00A5B7D1 /* MainCoordinator.swift */,
 			);
 			path = Coordinator;
-			sourceTree = "<group>";
-		};
-		B5AC26652552C7FD003E2AEA /* Deeplink */ = {
-			isa = PBXGroup;
-			children = (
-				B5AC26662552C7FD003E2AEA /* DeeplinkModelProvider.swift */,
-				B5AC26672552C7FD003E2AEA /* DeeplinkModel.swift */,
-				B5AC26682552C7FD003E2AEA /* DeeplinkService.swift */,
-			);
-			path = Deeplink;
 			sourceTree = "<group>";
 		};
 		B5E18E522500E88200449E67 /* Workers */ = {
@@ -614,7 +608,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				B59132EF24E3F4A800A5B7D1 /* LaunchViewController.swift in Sources */,
-				B5AC266A2552C7FD003E2AEA /* DeeplinkModel.swift in Sources */,
 				B591328E24E3D58600A5B7D1 /* AppDelegate.swift in Sources */,
 				B5F00B1E24E566BF00540FCE /* MultiStreamPreviewCollectionViewManager.swift in Sources */,
 				B59132FA24E3F60B00A5B7D1 /* MainCoordinator.swift in Sources */,
@@ -625,8 +618,7 @@
 				B5F00B1924E55FAD00540FCE /* MultiStreamViewController.swift in Sources */,
 				B5B0BBE724EFBEC600A45C82 /* MultiStreamPreviewCollectionViewCell.swift in Sources */,
 				B59132F124E3F4B800A5B7D1 /* Storyboarded.swift in Sources */,
-				B5AC266B2552C7FD003E2AEA /* DeeplinkService.swift in Sources */,
-				B5AC26692552C7FD003E2AEA /* DeeplinkModelProvider.swift in Sources */,
+				B540508625E3F21F002E1421 /* PhenixDeeplinkModel.swift in Sources */,
 				B59132F824E3F5FA00A5B7D1 /* Coordinator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

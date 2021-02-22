@@ -2,6 +2,7 @@
 //  Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
 //
 
+import PhenixDeeplink
 import UIKit
 
 @UIApplicationMain
@@ -39,7 +40,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         self.window = window
 
         // Setup deeplink
-        let deeplink = makeDeeplinkIfNeeded(launchOptions)
+        let deeplink = PhenixDeeplinkService<PhenixDeeplinkModel>.makeDeeplink(launchOptions)
 
         // Setup launcher to initiate the application components
         let launcher = Launcher(window: window, deeplink: deeplink)
@@ -51,7 +52,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ application: UIApplication, continue userActivity: NSUserActivity, restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
-        guard let deeplink = makeDeeplinkIfNeeded(userActivity) else {
+        guard let deeplink = PhenixDeeplinkService<PhenixDeeplinkModel>.makeDeeplink(userActivity) else {
             return false
         }
 
@@ -90,33 +91,4 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
         return true
     }
-}
-
-// MARK: - Private methods
-private extension AppDelegate {
-    func makeDeeplinkIfNeeded(_ launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> DeeplinkModel? {
-        if let options = launchOptions?[.userActivityDictionary] as? [AnyHashable: Any] {
-            if let userActivity = options[UIApplication.LaunchOptionsKey.userActivityKey] as? NSUserActivity {
-                return makeDeeplinkIfNeeded(userActivity)
-            }
-        }
-
-        return nil
-    }
-
-    func makeDeeplinkIfNeeded(_ userActivity: NSUserActivity) -> DeeplinkModel? {
-        if userActivity.activityType == NSUserActivityTypeBrowsingWeb {
-            if let url = userActivity.webpageURL {
-                let service = DeeplinkService<DeeplinkModel>(url: url)
-                let deeplink = service?.decode()
-                return deeplink
-            }
-        }
-
-        return nil
-    }
-}
-
-extension UIApplication.LaunchOptionsKey {
-    static let userActivityKey = "UIApplicationLaunchOptionsUserActivityKey"
 }

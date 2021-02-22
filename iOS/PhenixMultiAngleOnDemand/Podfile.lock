@@ -1,8 +1,10 @@
 PODS:
+  - PhenixDeeplink (0.1.0)
   - PhenixSdk (2021.0.1-beta)
   - SwiftLint (0.42.0)
 
 DEPENDENCIES:
+  - PhenixDeeplink (from `../PhenixDeeplink`)
   - PhenixSdk (= 2021.0.1-beta)
   - SwiftLint (~> 0.42.0)
 
@@ -12,10 +14,15 @@ SPEC REPOS:
   trunk:
     - SwiftLint
 
+EXTERNAL SOURCES:
+  PhenixDeeplink:
+    :path: "../PhenixDeeplink"
+
 SPEC CHECKSUMS:
+  PhenixDeeplink: afff8774bd397ba31b0244c84fc722efbe4e0ccc
   PhenixSdk: d52f35d5ff551e4a86b64ddc6d59495d605c1796
   SwiftLint: 4fa9579c63416865179bc416f0a92d55f009600d
 
-PODFILE CHECKSUM: 7f1051e331f4379ea53f3b73eeb24f0a61e6c2ad
+PODFILE CHECKSUM: 76413f9171265441ca21ae1637ae1bd84a52dfb1
 
 COCOAPODS: 1.10.0

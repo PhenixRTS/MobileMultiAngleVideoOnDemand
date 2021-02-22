@@ -8,10 +8,10 @@ import UIKit
 
 /// Have all instructions how to initiate application dependencies and the main coordinator
 class Launcher {
-    private let deeplink: DeeplinkModel?
+    private let deeplink: PhenixDeeplinkModel?
     private weak var window: UIWindow?
 
-    init(window: UIWindow, deeplink: DeeplinkModel? = nil) {
+    init(window: UIWindow, deeplink: PhenixDeeplinkModel? = nil) {
         self.window = window
         self.deeplink = deeplink
     }
@@ -36,8 +36,8 @@ class Launcher {
         let unrecoverableErrorCompletion: (String?) -> Void = { description in
             DispatchQueue.main.async {
                 AppDelegate.terminate(
-                    afterDisplayingAlertWithTitle: "Error",
-                    message: "Phenix SDK reached unrecoverable error: (\(description ?? "N/A"))"
+                    afterDisplayingAlertWithTitle: "Something went wrong!",
+                    message: "Application entered in unrecoverable state and will be terminated (\(description ?? "N/A"))."
                 )
             }
         }
