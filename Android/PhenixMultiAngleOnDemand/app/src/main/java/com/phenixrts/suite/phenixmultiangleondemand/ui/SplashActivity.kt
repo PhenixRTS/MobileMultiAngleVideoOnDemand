@@ -4,6 +4,7 @@
 
 package com.phenixrts.suite.phenixmultiangleondemand.ui
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
@@ -17,11 +18,13 @@ import com.phenixrts.suite.phenixmultiangleondemand.common.*
 import com.phenixrts.suite.phenixmultiangleondemand.common.enums.ExpressError
 import com.phenixrts.suite.phenixmultiangleondemand.databinding.ActivitySplashBinding
 import com.phenixrts.suite.phenixmultiangleondemand.repository.PCastExpressRepository
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 import javax.inject.Inject
 
 private const val TIMEOUT_DELAY = 10000L
 
+@SuppressLint("CustomSplashScreen")
 class SplashActivity : AppCompatActivity() {
 
     @Inject
@@ -42,10 +45,12 @@ class SplashActivity : AppCompatActivity() {
         MultiAngleOnDemandApp.component.inject(this)
         binding = ActivitySplashBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        pCastExpressRepository.onChannelExpressError.observe(this, { error ->
-            Timber.d("Room express failed")
-            showErrorDialog(error)
-        })
+        launchMain {
+            pCastExpressRepository.onChannelExpressError.collect { error ->
+                Timber.d("Room express failed")
+                showErrorDialog(error)
+            }
+        }
         checkDeepLink(intent)
     }
 

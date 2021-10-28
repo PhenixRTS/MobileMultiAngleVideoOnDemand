@@ -4,8 +4,6 @@
 
 package com.phenixrts.suite.phenixmultiangleondemand.common
 
-import android.view.SurfaceHolder
-import android.view.SurfaceView
 import android.view.View
 import android.widget.AdapterView
 import android.widget.Spinner
@@ -86,22 +84,4 @@ fun Spinner.onSelectionChanged(callback: (Int) -> Unit) {
             }
         }
     }
-}
-
-fun SurfaceView.setCallback(onSurfaceAvailable: (Boolean) -> Unit): SurfaceHolder.Callback {
-    val callback = object : SurfaceHolder.Callback {
-        override fun surfaceCreated(p0: SurfaceHolder) {
-            onSurfaceAvailable(true)
-        }
-
-        override fun surfaceChanged(p0: SurfaceHolder, p1: Int, p2: Int, p3: Int) {
-            onSurfaceAvailable(true)
-        }
-
-        override fun surfaceDestroyed(p0: SurfaceHolder) {
-            onSurfaceAvailable(false)
-        }
-    }
-    holder.addCallback(callback)
-    return callback
 }

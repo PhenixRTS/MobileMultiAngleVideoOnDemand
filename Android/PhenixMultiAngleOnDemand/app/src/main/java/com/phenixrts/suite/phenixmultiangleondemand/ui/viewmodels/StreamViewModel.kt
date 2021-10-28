@@ -13,6 +13,7 @@ import com.phenixrts.suite.phenixmultiangleondemand.common.launchMain
 import com.phenixrts.suite.phenixmultiangleondemand.models.Stream
 import com.phenixrts.suite.phenixmultiangleondemand.repository.PCastExpressRepository
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collect
 import timber.log.Timber
 
 private const val REPLAY_BUTTON_CLICK_DELAY = 1000 * 2L
@@ -47,21 +48,25 @@ class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewMod
 
     init {
         Timber.d("Observing streams")
-        pCastExpressRepository.streams.observeForever { streamList ->
-            launchMain {
-                Timber.d("Stream list changed $streamList")
-                streams.value = streamList
-                streamList?.forEach { stream ->
-                    stream.onStreamSubscribed.observeForever(streamSubscribedObserver)
-                    stream.onTimeShiftReady.observeForever(timeShiftReadyObserver)
-                    stream.onTimeShiftEnded.observeForever(timeShiftEndedObserver)
-                    stream.subscribeToStream()
+        launchMain {
+            pCastExpressRepository.streams.collect { streamList ->
+                launchMain {
+                    Timber.d("Stream list changed $streamList")
+                    streams.value = streamList
+                    streamList.forEach { stream ->
+                        stream.onStreamSubscribed.observeForever(streamSubscribedObserver)
+                        stream.onTimeShiftReady.observeForever(timeShiftReadyObserver)
+                        stream.onTimeShiftEnded.observeForever(timeShiftEndedObserver)
+                        stream.subscribeToStream()
+                    }
+                    Timber.d("Streams started $streamList")
                 }
-                Timber.d("Streams started $streamList")
             }
         }
-        pCastExpressRepository.acts.observeForever { actList ->
-            acts.value = actList
+        launchMain {
+            pCastExpressRepository.acts.collect { actList ->
+                acts.value = actList
+            }
         }
     }
 
