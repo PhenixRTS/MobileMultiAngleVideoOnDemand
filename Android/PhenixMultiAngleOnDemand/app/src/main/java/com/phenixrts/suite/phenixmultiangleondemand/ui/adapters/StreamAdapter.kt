@@ -1,5 +1,5 @@
 /*
- * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixmultiangleondemand.ui.adapters
@@ -9,16 +9,20 @@ import android.view.ViewGroup
 import androidx.lifecycle.LifecycleOwner
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
+import com.phenixrts.suite.phenixcore.PhenixCore
+import com.phenixrts.suite.phenixcore.repositories.models.PhenixStream
+import com.phenixrts.suite.phenixcore.repositories.models.PhenixTimeShiftState
+import com.phenixrts.suite.phenixmultiangleondemand.common.setVisibleOr
 import com.phenixrts.suite.phenixmultiangleondemand.databinding.RowStreamItemBinding
-import com.phenixrts.suite.phenixmultiangleondemand.models.Stream
 import kotlin.properties.Delegates
 
 class StreamAdapter(
-    private val onStreamClicked: (stream: Stream) -> Unit
+    private val phenixCore: PhenixCore,
+    private val onStreamClicked: (stream: PhenixStream) -> Unit
 ) : RecyclerView.Adapter<StreamAdapter.ViewHolder>() {
 
-    var data: List<Stream> by Delegates.observable(mutableListOf()) { _, old, new ->
-        DiffUtil.calculateDiff(RoomMemberDiff(old, new)).dispatchUpdatesTo(this)
+    var data: List<PhenixStream> by Delegates.observable(mutableListOf()) { _, old, new ->
+        DiffUtil.calculateDiff(PhenixChannelDiff(old, new)).dispatchUpdatesTo(this)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int) = ViewHolder(
@@ -32,24 +36,27 @@ class StreamAdapter(
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val stream = data[position]
         holder.binding.stream = stream
-        stream.setThumbnailSurfaces(holder.binding.itemStreamSurface, holder.binding.itemBitmapImage)
-        stream.isMainRendered.observeForever {
-            holder.binding.stream = stream
+        holder.binding.itemSurfaceHolder.tag = stream
+        holder.binding.itemSurfaceHolder.setOnClickListener {
+            onStreamClicked(it.tag as PhenixStream)
+        }
+        updateChannelRenderer(stream, holder)
+    }
+
+    private fun updateChannelRenderer(channel: PhenixStream, holder: ViewHolder) {
+        phenixCore.renderOnImage(channel.id, holder.binding.itemBitmapImage)
+        holder.binding.itemBitmapImage.setVisibleOr(
+            channel.isSelected || channel.timeShiftState == PhenixTimeShiftState.PAUSED
+        )
+        if (!channel.isSelected) {
+            phenixCore.renderOnSurface(channel.id, holder.binding.itemStreamSurface)
         }
     }
 
-    inner class ViewHolder(val binding: RowStreamItemBinding) : RecyclerView.ViewHolder(binding.root) {
-        init {
-            binding.itemSurfaceHolder.setOnClickListener {
-                data.getOrNull(adapterPosition)?.let { roomMember ->
-                    onStreamClicked(roomMember)
-                }
-            }
-        }
-    }
+    inner class ViewHolder(val binding: RowStreamItemBinding) : RecyclerView.ViewHolder(binding.root)
 
-    class RoomMemberDiff(private val oldItems: List<Stream>,
-                         private val newItems: List<Stream>
+    class PhenixChannelDiff(private val oldItems: List<PhenixStream>,
+                            private val newItems: List<PhenixStream>
     ) : DiffUtil.Callback() {
 
         override fun getOldListSize() = oldItems.size
@@ -57,7 +64,7 @@ class StreamAdapter(
         override fun getNewListSize() = newItems.size
 
         override fun areItemsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
-            return oldItems[oldItemPosition].streamId == newItems[newItemPosition].streamId
+            return oldItems[oldItemPosition].id == newItems[newItemPosition].id
         }
 
         override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {

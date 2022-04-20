@@ -1,12 +1,12 @@
 /*
- * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixmultiangleondemand.injection
 
+import com.phenixrts.suite.phenixcore.PhenixCore
 import com.phenixrts.suite.phenixmultiangleondemand.MultiAngleOnDemandApp
 import com.phenixrts.suite.phenixmultiangleondemand.cache.PreferenceProvider
-import com.phenixrts.suite.phenixmultiangleondemand.repository.PCastExpressRepository
 import dagger.Module
 import dagger.Provides
 import javax.inject.Singleton
@@ -16,7 +16,7 @@ class InjectionModule(private val context: MultiAngleOnDemandApp) {
 
     @Singleton
     @Provides
-    fun provideRoomExpressRepository() = PCastExpressRepository(context)
+    fun providePhenixCore() = PhenixCore(context)
 
     @Provides
     @Singleton

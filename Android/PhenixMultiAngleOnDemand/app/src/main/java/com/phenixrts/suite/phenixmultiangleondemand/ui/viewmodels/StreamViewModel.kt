@@ -1,143 +1,159 @@
 /*
- * Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+ * Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
  */
 
 package com.phenixrts.suite.phenixmultiangleondemand.ui.viewmodels
 
 import android.view.SurfaceView
-import android.widget.ImageView
 import androidx.lifecycle.*
-import androidx.lifecycle.Observer
+import com.phenixrts.suite.phenixcore.PhenixCore
+import com.phenixrts.suite.phenixcore.common.ConsumableSharedFlow
+import com.phenixrts.suite.phenixcore.common.launchIO
+import com.phenixrts.suite.phenixcore.common.launchMain
+import com.phenixrts.suite.phenixcore.repositories.models.*
+import com.phenixrts.suite.phenixmultiangleondemand.common.toMillis
 import com.phenixrts.suite.phenixmultiangleondemand.models.Act
-import com.phenixrts.suite.phenixmultiangleondemand.common.launchMain
-import com.phenixrts.suite.phenixmultiangleondemand.models.Stream
-import com.phenixrts.suite.phenixmultiangleondemand.repository.PCastExpressRepository
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import timber.log.Timber
 
 private const val REPLAY_BUTTON_CLICK_DELAY = 1000 * 2L
 
-class ChannelViewModel(pCastExpressRepository: PCastExpressRepository) : ViewModel() {
+class StreamViewModel(private val phenixCore: PhenixCore) : ViewModel() {
 
-    private val timeShiftReadyObserver = Observer<Boolean> {
-        updateReadyState()
-    }
+    private val rawStreams = mutableListOf<PhenixStream>()
+    private val rawActs = mutableListOf<Act>()
 
-    private val timeShiftEndedObserver = Observer<Boolean> {
-        updateEndedState()
-    }
-
-    private val streamSubscribedObserver = Observer<Boolean> {
-        updateSubscribedState()
-    }
-
-    private val playbackHeadObserver = Observer<Long> { head ->
-        headTimeStamp.value = head
-    }
+    private val _onReplayButtonClickable = ConsumableSharedFlow<Boolean>(canReplay = true)
+    private val _streams = ConsumableSharedFlow<List<PhenixStream>>(canReplay = true)
+    private val _acts = ConsumableSharedFlow<List<Act>>(canReplay = true)
+    private val _onHeadTimeChanged = ConsumableSharedFlow<Long>(canReplay = true)
+    private val _onTimeShiftStateChanged = ConsumableSharedFlow<PhenixTimeShiftState>(canReplay = true)
+    private val _onStreamsJoined = MutableStateFlow(false)
 
     private var selectedAct: Act? = null
-    val streams = MutableLiveData<List<Stream>>()
-    val acts = MutableLiveData<List<Act>>()
-    val headTimeStamp = MutableLiveData<Long>()
-    val onTimeShiftReady = MutableLiveData<Boolean>().apply { value = false }
-    val onTimeShiftEnded = MutableLiveData<Boolean>().apply { value = false }
-    val onStreamsSubscribed = MutableLiveData<Boolean>().apply { value = true }
-    val onButtonsClickable = MutableLiveData<Boolean>().apply { value = true }
-    var isTimeShiftPaused = false
+    private var timeShiftStart = 0L
+    private var timeShiftsCreated = false
+    private var streamSelected = false
+    private var isReplayButtonEnabled = true
+    private var lastTimeShiftState = PhenixTimeShiftState.STARTING
+    private val streamCopy get() = rawStreams.map { it.copy() }
+
+    val streams = _streams.asSharedFlow()
+    val acts = _acts.asSharedFlow()
+    val onButtonsClickable = _onReplayButtonClickable.asSharedFlow()
+    val onHeadTimeChanged = _onHeadTimeChanged.asSharedFlow()
+    val onTimeShiftStateChanged = _onTimeShiftStateChanged.asSharedFlow()
+    val onStreamsJoined = _onStreamsJoined.asStateFlow()
+
+    val isTimeShiftPaused get() = streamCopy.find { it.isSelected }?.timeShiftState == PhenixTimeShiftState.PAUSED
 
     init {
         Timber.d("Observing streams")
-        launchMain {
-            pCastExpressRepository.streams.collect { streamList ->
-                launchMain {
-                    Timber.d("Stream list changed $streamList")
-                    streams.value = streamList
-                    streamList.forEach { stream ->
-                        stream.onStreamSubscribed.observeForever(streamSubscribedObserver)
-                        stream.onTimeShiftReady.observeForever(timeShiftReadyObserver)
-                        stream.onTimeShiftEnded.observeForever(timeShiftEndedObserver)
-                        stream.subscribeToStream()
-                    }
-                    Timber.d("Streams started $streamList")
+        launchIO {
+            phenixCore.streams.collect { streams ->
+                rawStreams.clear()
+                rawStreams.addAll(streams)
+                if (streams.isEmpty()) return@collect
+                // Check if all streams joined
+                val allStreamsJoined = streams.all { it.streamState == PhenixStreamState.STREAMING }
+                _onStreamsJoined.tryEmit(allStreamsJoined)
+                if (allStreamsJoined && !timeShiftsCreated) {
+                    timeShiftsCreated = true
+                    createTimeShift()
                 }
+
+                // Select a stream if none selected
+                if (streams.none { it.isSelected } && !streamSelected) {
+                    streamSelected = true
+                    selectStream(streams.first())
+                }
+                // Chek if all time shifts are sought to the same timestamp
+                if (streams.all { it.timeShiftState == PhenixTimeShiftState.SOUGHT }) {
+                    streams.forEach { stream ->
+                        phenixCore.playTimeShift(stream.id)
+                    }
+                }
+                // Update selected stream time shift state
+                val timeShiftState = streams.find { it.isSelected }?.timeShiftState ?: PhenixTimeShiftState.STARTING
+                val areAllTimeShiftsReady = streams.all { it.timeShiftState == PhenixTimeShiftState.READY }
+                if (lastTimeShiftState != timeShiftState) {
+                    lastTimeShiftState = if (timeShiftState != PhenixTimeShiftState.READY || areAllTimeShiftsReady)
+                        timeShiftState else PhenixTimeShiftState.STARTING
+                    _onTimeShiftStateChanged.tryEmit(lastTimeShiftState)
+                }
+                // Update head time stamp for selected stream
+                val head = streams.find { it.isSelected }?.timeShiftHead ?: 0L
+                _onHeadTimeChanged.tryEmit(head)
+                _streams.tryEmit(streams.map { it.copy() })
             }
         }
-        launchMain {
-            pCastExpressRepository.acts.collect { actList ->
-                acts.value = actList
-            }
+        rawActs.addAll(phenixCore.configuration?.acts?.map { Act(it, it.toMillis()) } ?: emptyList())
+        Timber.d("Acts collected: $rawActs")
+        _acts.tryEmit(rawActs.map { it.copy() })
+    }
+
+    fun joinStreams() = launchIO {
+        Timber.d("Joining streams: ${phenixCore.configuration?.streamIDs}")
+        phenixCore.joinAllStreams()
+    }
+
+    fun selectStream(selectedStream: PhenixStream) {
+        streamCopy.forEach { stream ->
+            val isSelected = stream.id == selectedStream.id
+            phenixCore.selectStream(stream.id, isSelected)
+            phenixCore.setAudioEnabled(stream.id, isSelected)
         }
     }
 
-    private fun updateEndedState() = launchMain {
-        val hasEnded = streams.value?.none { it.onTimeShiftEnded.value == false } ?: false
-        Timber.d("Time shift ended for all: $hasEnded")
-        if (onTimeShiftEnded.value != hasEnded) {
-            onTimeShiftEnded.value = hasEnded
+    fun renderActiveStream(surfaceView: SurfaceView) {
+        streamCopy.find { it.isSelected }?.let { stream ->
+            Timber.d("Render active stream: $stream")
+            phenixCore.renderOnSurface(stream.id, surfaceView)
         }
-    }
-
-    private fun updateReadyState() = launchMain {
-        val isReady = streams.value?.none { it.onTimeShiftReady.value == false } ?: false
-        onTimeShiftReady.value = isReady
-    }
-
-    private fun updateSubscribedState() = launchMain {
-        val isSubscribed = streams.value?.none { it.onStreamSubscribed.value == false } ?: false
-        onStreamsSubscribed.value = isSubscribed
-    }
-
-    fun updateActiveStream(surfaceView: SurfaceView, bitmapView: ImageView?,  stream: Stream) = launchMain {
-        val streams = streams.value?.toMutableList() ?: mutableListOf()
-        streams.filter { it.isMainRendered.value == true && it.streamId != stream.streamId }.forEach { stream ->
-            stream.isMainRendered.value = false
-            stream.setMainSurfaces(null, null)
-            stream.muteAudio()
-            stream.onPlaybackHead.removeObserver(playbackHeadObserver)
-        }
-        streams.find { it.streamId == stream.streamId }?.apply {
-            isMainRendered.value = true
-            setMainSurfaces(surfaceView, bitmapView)
-            unmuteAudio()
-            onPlaybackHead.observeForever(playbackHeadObserver)
-        }
-        Timber.d("Updated active stream: $stream")
-        updateReadyState()
-        updateEndedState()
     }
 
     fun selectAct(index: Int) {
-        selectedAct = acts.value?.getOrNull(index) ?: acts.value?.first()
+        selectedAct = rawActs.getOrNull(index) ?: rawActs.firstOrNull()
     }
 
     fun seekToAct(index: Int) {
-        selectedAct = acts.value?.getOrNull(index) ?: acts.value?.first()
+        selectedAct = rawActs.getOrNull(index) ?: rawActs.firstOrNull()
         selectedAct?.let { act ->
-            onButtonsClickable.value = false
-            streams.value?.forEach { stream ->
-                stream.seekToAct(act)
+            isReplayButtonEnabled = false
+            _onReplayButtonClickable.tryEmit(isReplayButtonEnabled)
+            streamCopy.forEach { stream ->
+                phenixCore.seekTimeShift(stream.id, act.offsetFromBeginning)
             }
             launchMain {
                 delay(REPLAY_BUTTON_CLICK_DELAY)
-                onButtonsClickable.value = true
+                isReplayButtonEnabled = true
+                _onReplayButtonClickable.tryEmit(isReplayButtonEnabled)
             }
         }
     }
 
     fun playTimeShift() {
-        isTimeShiftPaused = false
-        streams.value?.forEach {  stream ->
-            stream.onLoading.value = false
-            stream.playTimeShift()
+        streamCopy.forEach { stream ->
+            phenixCore.playTimeShift(stream.id)
         }
         Timber.d("Time shift ready - playing")
     }
 
     fun pauseReplay() {
-        isTimeShiftPaused = true
-        streams.value?.forEach { stream ->
-            stream.pauseTimeShift()
+        streamCopy.forEach { stream ->
+            phenixCore.pauseTimeShift(stream.id)
+        }
+    }
+
+    private fun createTimeShift() {
+        Timber.d("Creating time shift")
+        streamCopy.forEach { stream ->
+            timeShiftStart = 0
+            phenixCore.createTimeShift(stream.id, 0)
+            phenixCore.limitBandwidth(stream.id, 1000 * 520L)
         }
     }
 }

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ~ Copyright 2021 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
+  ~ Copyright 2022 Phenix Real Time Solutions, Inc. Confidential and Proprietary. All rights reserved.
   -->
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -8,10 +8,11 @@
 
     <data>
         <import type="android.view.View" />
-        <import type="com.phenixrts.suite.phenixmultiangleondemand.common.enums.StreamStatus" />
+        <import type="com.phenixrts.suite.phenixcore.repositories.models.PhenixTimeShiftState" />
+        <import type="com.phenixrts.suite.phenixcore.repositories.models.PhenixStreamState" />
         <variable
             name="stream"
-            type="com.phenixrts.suite.phenixmultiangleondemand.models.Stream" />
+            type="com.phenixrts.suite.phenixcore.repositories.models.PhenixStream" />
     </data>
 
     <androidx.constraintlayout.widget.ConstraintLayout
@@ -24,7 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="150dp"
             android:background="@color/primaryDarkColor"
-            android:foreground="@{stream.isMainRendered ? @drawable/bg_surface_selected : @drawable/bg_surface}"
+            android:foreground="@{stream.selected ? @drawable/bg_surface_selected : @drawable/bg_surface}"
             android:padding="2dp"
             android:clipChildren="true"
             app:layout_constraintStart_toStartOf="parent"
@@ -39,14 +40,14 @@
 
             <ImageView
                 android:id="@+id/item_bitmap_image"
-                android:scaleType="centerCrop"
+                android:scaleType="fitCenter"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:contentDescription="@null"
                 android:visibility="gone" />
 
             <FrameLayout
-                android:visibility="@{stream.onLoading ? View.VISIBLE : View.GONE}"
+                android:visibility="@{stream.timeShiftState == PhenixTimeShiftState.STARTING || stream.streamState == PhenixStreamState.JOINING ? View.VISIBLE : View.GONE}"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
@@ -67,7 +68,7 @@
                 android:text="@string/stream_offline"
                 android:gravity="center"
                 android:background="@color/primaryColor"
-                android:visibility="@{stream.status == StreamStatus.ONLINE ? View.GONE : View.VISIBLE}"
+                android:visibility="@{stream.streamState == PhenixStreamState.STREAMING ? View.GONE : View.VISIBLE}"
                 tools:visibility="visible" />
 
         </FrameLayout>
